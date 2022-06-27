@@ -903,18 +903,32 @@ void R_RenderPlayerView (player_t* player)
     NetUpdate ();
 
     ////// TEST
+    // produce command stream file
     {
         static int count = 0;
-        FILE *f = fopen("frame.nfo","w");
+        FILE *f;
+        f = fopen("data.py","w");
         if (!f) {
             I_Error("Could not open output draw command file\n");
         }
+        // initialize with header
+        FILE *h;
+        h = fopen("header.py","r");
+        if (!h) {
+            I_Error("Could not open draw command file header\n");
+        }
+        while (1) {
+            int c = fgetc(h);
+            if (c == EOF) break;
+            fputc(c,f);
+        }
+        fclose(h);
         for (int x=0;x<SCREENWIDTH;++x) {
-            printf("Column %3d\n",x);
+            //printf("Column %3d\n",x);
             t_spanrecord *cur = dc_spanrecords[x];
             while (cur) {
-                printf("cur->vstep %d,cur->vinit %d,cur->u %d,",cur->vstep,cur->vinit,cur->u);
-                printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
+                //printf("cur->vstep %d,cur->vinit %d,cur->u %d,",cur->vstep,cur->vinit,cur->u);
+                //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
                 unsigned int dc0 = COLDRAW_WALL(cur->vstep,cur->vinit,cur->u);
                 unsigned int dc1 = COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | WALL;
                 fprintf(f,"0,"); // timestamp, can ignore
@@ -935,10 +949,11 @@ void R_RenderPlayerView (player_t* player)
             fprintf(f,"0,");
             fprintf(f,"0x%02x,0x%02x,0x%02x,0x%02x,",  (dc0>>24)&255,(dc0>>16)&255,(dc0>>8)&255,(dc0)&255);
             fprintf(f,"0x%02x,0x%02x,0x%02x,0x%02x,\n",(dc1>>24)&255,(dc1>>16)&255,(dc1>>8)&255,(dc1)&255);
-        }       
-        fclose(f);
-        if (++count == 16) {
+        }
+        fprintf(f,"]");
+        if (++count == 128) {
             I_Error("stopping here for now");
         }
+        fclose(f);
     }
 }
