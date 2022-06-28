@@ -195,7 +195,7 @@ void R_DrawColumn (void)
     rec->yl    = dc_yl;
     rec->yh    = dc_yh;
     rec->vstep = fracstep >> 5;
-    rec->vinit = (frac >> 16);
+    rec->vinit = (frac >> 15);
 #endif
     rec->texid = 1 + dc_texid;
     rec->u     = dc_u;

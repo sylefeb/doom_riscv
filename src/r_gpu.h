@@ -15,7 +15,7 @@
 #define TERRAIN     (2<<30)
 #define PARAMETER   (3<<30)
 
-#define COLDRAW_WALL(y,v_init,u_init) ((  y) & 65535) | ((((v_init))&255)<<16) | (((u_init)&255) << 24)
+#define COLDRAW_WALL(y,v_init,u_init) ((  y) & 32767) | ((((v_init))&511)<<15) | (((u_init)&255) << 24)
 #define COLDRAW_TERRAIN(st,ed,pick)   (( ed) & 65535) | (((st) & 65535)<<16) | (pick)
 #define COLDRAW_PLANE_B(ded,dr)       ((ded) & 65535) | (((dr) & 65535) << 16)
 
