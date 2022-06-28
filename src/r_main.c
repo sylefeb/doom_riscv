@@ -500,7 +500,7 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     else
         scale = 64*FRACUNIT;
 
-    return scale*6/5; // adjust aspect ratio
+    return scale; // NOTE: possibly adjust aspect ratio here
 }
 
 
