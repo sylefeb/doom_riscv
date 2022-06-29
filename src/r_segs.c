@@ -91,6 +91,7 @@ lighttable_t**  walllights;
 
 short*          maskedtexturecol;
 
+extern int      numtextures;
 
 
 //
@@ -241,9 +242,9 @@ void R_RenderSegLoop (void)
                     rec->type  = SPAN_FLAT; // flat
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
-                    rec->flat.height = worldtop >> 10;
+                    rec->flat.height = worldtop >> 12;
                     rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
-                    rec->texid = 3;
+                    rec->texid = numtextures + frontsector->ceilingpic;
                     rec->light = 15; // dc_light;
                 }
             }
@@ -258,8 +259,10 @@ void R_RenderSegLoop (void)
         {
             top = yh+1;
             bottom = floorclip[rw_x]-1;
+
             if (top <= ceilingclip[rw_x])
                 top = ceilingclip[rw_x]+1;
+
             if (top <= bottom)
             {
                 floorplane->top[rw_x] = top;
@@ -271,9 +274,9 @@ void R_RenderSegLoop (void)
                     rec->type  = SPAN_FLAT;
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
-                    rec->flat.height = - worldbottom >> 10;
+                    rec->flat.height = - worldbottom >> 12;
                     rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
-                    rec->texid = 3;
+                    rec->texid = numtextures + frontsector->floorpic;
                     rec->light = 15; // dc_light;
                 }
             }

@@ -554,11 +554,15 @@ void M_ScreenShot (void)
         if (!f) {
             I_Error("Could not open output draw command file\n");
         }
+        cmd_out(f,
+            PARAMETER_UV_OFFSET(viewy,viewx),
+            PARAMETER
+        );
         for (int x=0;x<SCREENWIDTH;++x) {
             int rz = 4096;
-            int cx = (x - SCREENWIDTH/2) << 4; // TODO: FIX! this is incorrect // col_to_x[c];
-            int du = dot3( cx,0,rz,  viewcos>>4,0,viewsin>>4 ) >> 14;
-            int dv = dot3( cx,0,rz, -viewsin>>4,0,viewcos>>4 ) >> 14;
+            int cx = (x - SCREENWIDTH/2) * 4096 * 4 / (3 * SCREENWIDTH);  // TODO: FIX! this is incorrect // col_to_x[c];
+            int du = dot3( cx,0,rz,  viewsin>>4,0,viewcos>>4 ) >> 14;
+            int dv = dot3( cx,0,rz, -viewcos>>4,0,viewsin>>4 ) >> 14;
             printf("Column %3d, vc %d, vs %d, du %d, dv %d\n",x,viewcos,viewsin,du,dv);
             cmd_out(f,
                 PARAMETER_PLANE_A(256,0,0),
