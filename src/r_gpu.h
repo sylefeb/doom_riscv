@@ -31,3 +31,8 @@
 #define PARAMETER_UV_OFFSET(uo,vo)   (1<<30) | ((uo) & 16383) | (((vo) & 16383)<<14)
 
 #define MAX_DEPTH 65535
+
+static inline int dot3(int a, int b,int c, int x,int y,int z)
+{
+  return a*x + b*y + c*z;
+}

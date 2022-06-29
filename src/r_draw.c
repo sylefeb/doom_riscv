@@ -186,20 +186,21 @@ void R_DrawColumn (void)
 
     // Add span record for the GPU (TEST: move to a different R_DrawColumn and set colfunc)
     t_spanrecord *rec = R_AddSpanRecord(dc_x);
+    rec->type  = SPAN_WALL; // wall
 #if 1
     rec->yl    = (( dc_yl      * 6) + 2) / 5;
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
-    rec->vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
-    rec->vinit = (frac >> 15);
+    rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
+    rec->wall.vinit = (frac >> 15);
 #else
     rec->yl    = dc_yl;
     rec->yh    = dc_yh;
-    rec->vstep = fracstep >> 5;
-    rec->vinit = (frac >> 15);
+    rec->wall.vstep = fracstep >> 5;
+    rec->wall.vinit = (frac >> 15);
 #endif
-    rec->texid = 1 + dc_texid;
-    rec->u     = dc_u;
-    rec->light = 15; // dc_light;
+    rec->wall.u = dc_u;
+    rec->texid  = 1 + dc_texid;
+    rec->light  = 15; // dc_light;
 
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.

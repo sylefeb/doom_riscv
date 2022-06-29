@@ -44,16 +44,38 @@ extern byte             dc_light;
 extern byte*            dc_source;
 
 //
-// Span record
+// Wall span nfo
 //
-typedef struct s_spanrecord {
-  short  yl;
-  short  yh;
-  short  texid;
+typedef struct {
   int    vstep;
   short  vinit;
   short  u;
+} t_wallspan;
+
+//
+// Floor span nfo
+//
+typedef struct {
+  short  height;
+  short  yshift;
+} t_flatspan;
+
+#define SPAN_WALL 0
+#define SPAN_FLAT 1
+
+//
+// Span record
+//
+typedef struct s_spanrecord {
+  byte   type; // 0: wall, 1: flat
+  short  yl;
+  short  yh;
+  short  texid;
   byte   light;
+  union {
+    t_wallspan wall;
+    t_flatspan flat;
+  };
   struct s_spanrecord *next;
 } t_spanrecord;
 

@@ -234,6 +234,18 @@ void R_RenderSegLoop (void)
             {
                 ceilingplane->top[rw_x] = top;
                 ceilingplane->bottom[rw_x] = bottom;
+
+                // add a flat span
+                if (1) {
+                    t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    rec->type  = SPAN_FLAT; // flat
+                    rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
+                    rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                    rec->flat.height = worldtop >> 10;
+                    rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
+                    rec->texid = 3;
+                    rec->light = 15; // dc_light;
+                }
             }
         }
 
@@ -252,6 +264,18 @@ void R_RenderSegLoop (void)
             {
                 floorplane->top[rw_x] = top;
                 floorplane->bottom[rw_x] = bottom;
+
+                // add a flat span
+                if (1) {
+                    t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    rec->type  = SPAN_FLAT;
+                    rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
+                    rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                    rec->flat.height = - worldbottom >> 10;
+                    rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
+                    rec->texid = 3;
+                    rec->light = 15; // dc_light;
+                }
             }
         }
 
@@ -315,8 +339,9 @@ void R_RenderSegLoop (void)
             else
             {
                 // no top wall
-                if (markceiling)
+                if (markceiling) {
                     ceilingclip[rw_x] = yl-1;
+                }
             }
 
             if (bottomtexture)
