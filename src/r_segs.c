@@ -243,7 +243,7 @@ void R_RenderSegLoop (void)
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
                     rec->flat.height = worldtop >> 12;
-                    rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
+                    rec->flat.yshift = top - SCREENHEIGHT/2;
                     rec->texid = numtextures + frontsector->ceilingpic;
                     rec->light = 15; // dc_light;
                 }
@@ -275,7 +275,7 @@ void R_RenderSegLoop (void)
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
                     rec->flat.height = - worldbottom >> 12;
-                    rec->flat.yshift = rec->yl - SCREENHEIGHT/2;
+                    rec->flat.yshift = top - SCREENHEIGHT/2;
                     rec->texid = numtextures + frontsector->floorpic;
                     rec->light = 15; // dc_light;
                 }
