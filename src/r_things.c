@@ -95,8 +95,8 @@ spriteframe_t   sprtemp[29];
 int             maxframe;
 char*           spritename;
 
-
-
+extern int      numtextures;
+extern int      numflats;
 
 //
 // R_InstallSpriteLump
@@ -376,6 +376,8 @@ void R_DrawMaskedColumn (column_t* column)
             dc_source = (byte *)column + 3;
             dc_texturemid = basetexturemid - (column->topdelta<<FRACBITS);
             // dc_source = (byte *)column + 3 - column->topdelta;
+            // GPU: cancel the offset
+            dc_voffset = (column->topdelta<<(FRACBITS));
 
             // Drawn by either R_DrawColumn
             //  or (SHADOW) R_DrawFuzzColumn.
@@ -430,6 +432,14 @@ R_DrawVisSprite
     for (dc_x=vis->x1 ; dc_x<=vis->x2 ; dc_x++, frac += vis->xiscale)
     {
         texturecolumn = frac>>FRACBITS;
+
+        ////// for GPU
+        dc_u     = texturecolumn;
+        dc_texid = numtextures + numflats - 2 + vis->patch + 1;
+        //                                ^^^ 
+        // engine counts 2 additional flats due to F1_START/F1_END
+        //////
+
 #ifdef RANGECHECK
         if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
             I_Error ("R_DrawSpriteRange: bad texturecolumn");

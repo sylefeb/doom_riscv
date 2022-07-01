@@ -175,6 +175,9 @@ R_RenderMaskedSegRange
             sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
             dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
+            // TODO:prepare parameters for GPU commands
+            // NOTE: these textures are 'patches' not currently in the texture pack
+
             // draw the texture
             col = (column_t *)(
                 (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
@@ -269,7 +272,7 @@ void R_RenderSegLoop (void)
                 floorplane->bottom[rw_x] = bottom;
 
                 // add a flat span
-                if (1) {
+                if (0) {
                     t_spanrecord *rec = R_AddSpanRecord(rw_x);
                     rec->type  = SPAN_FLAT;
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
@@ -290,6 +293,7 @@ void R_RenderSegLoop (void)
             texturecolumn = rw_offset-FixedMul(finetangent[angle],rw_distance);
             texturecolumn >>= FRACBITS;
             dc_u = texturecolumn;
+            dc_voffset = 0;
             // calculate lighting
             index = rw_scale>>LIGHTSCALESHIFT;
 
@@ -308,7 +312,7 @@ void R_RenderSegLoop (void)
             dc_yl = yl;
             dc_yh = yh;
             dc_texturemid = rw_midtexturemid;
-            dc_texid = midtexture;
+            dc_texid = 1 + midtexture;
             dc_source = R_GetColumn(midtexture,texturecolumn);
             colfunc ();
             ceilingclip[rw_x] = viewheight;
@@ -331,7 +335,7 @@ void R_RenderSegLoop (void)
                     dc_yl = yl;
                     dc_yh = mid;
                     dc_texturemid = rw_toptexturemid;
-                    dc_texid = toptexture;
+                    dc_texid = 1 + toptexture;
                     dc_source = R_GetColumn(toptexture,texturecolumn);
                     colfunc ();
                     ceilingclip[rw_x] = mid;
@@ -362,7 +366,7 @@ void R_RenderSegLoop (void)
                     dc_yl = mid;
                     dc_yh = yh;
                     dc_texturemid = rw_bottomtexturemid;
-                    dc_texid = bottomtexture;
+                    dc_texid = 1 + bottomtexture;
                     dc_source = R_GetColumn(bottomtexture,
                                             texturecolumn);
                     colfunc ();

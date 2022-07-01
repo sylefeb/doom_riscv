@@ -474,6 +474,7 @@ void R_InitTextures (void)
         maxoff2 = 0;
     }
     numtextures = numtextures1 + numtextures2;
+    printf(" numtextures: %d\n",numtextures);
 
     textures = Z_Malloc (numtextures*4, PU_STATIC, 0);
     texturecolumnlump = Z_Malloc (numtextures*4, PU_STATIC, 0);
@@ -597,6 +598,8 @@ void R_InitFlats (void)
     lastflat = W_GetNumForName ("F_END") - 1;
     numflats = lastflat - firstflat + 1;
 
+    printf(" numflats: %d\n",numflats);
+
     // Create translation table for global animation.
     flattranslation = Z_Malloc ((numflats+1)*4, PU_STATIC, 0);
 
@@ -623,6 +626,8 @@ void R_InitSpriteLumps (void)
     spritewidth = Z_Malloc (numspritelumps*4, PU_STATIC, 0);
     spriteoffset = Z_Malloc (numspritelumps*4, PU_STATIC, 0);
     spritetopoffset = Z_Malloc (numspritelumps*4, PU_STATIC, 0);
+
+    printf(" numspritelumps: %d\n",numspritelumps);
 
     for (i=0 ; i< numspritelumps ; i++)
     {

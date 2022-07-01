@@ -38,6 +38,7 @@ extern fixed_t          dc_iscale;
 extern fixed_t          dc_texturemid;
 extern short            dc_texid;
 extern int              dc_u;
+extern int              dc_voffset;
 extern byte             dc_light;
 
 // first pixel in a column

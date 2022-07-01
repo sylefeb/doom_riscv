@@ -96,6 +96,8 @@ short                   dc_texid;
 int                     dc_u;
 // lighting level of column being drawn
 byte                    dc_light;
+// additional offset to v coordinate
+int                     dc_voffset;
 
 // just for profiling
 int                     dccount;
@@ -187,23 +189,16 @@ void R_DrawColumn (void)
     // Add span record for the GPU (TEST: move to a different R_DrawColumn and set colfunc)
     t_spanrecord *rec = R_AddSpanRecord(dc_x);
     rec->type  = SPAN_WALL; // wall
-#if 1
-    rec->yl    = (( dc_yl      * 6) + 2) / 5;
+    rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
     rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
-    rec->wall.vinit = (frac >> 15);
-#else
-    rec->yl    = dc_yl;
-    rec->yh    = dc_yh;
-    rec->wall.vstep = fracstep >> 5;
-    rec->wall.vinit = (frac >> 15);
-#endif
+    rec->wall.vinit = ((frac + dc_voffset) >> 15);
     rec->wall.u = dc_u;
-    rec->texid  = 1 + dc_texid;
+    rec->texid  = dc_texid;
     rec->light  = 15; // dc_light;
 
     // Inner loop that does the actual texture mapping,
-    //  e.g. a DDA-lile scaling.
+    //  e.g. a DDA-like scaling.
     // This is as fast as it gets.
     do
     {
