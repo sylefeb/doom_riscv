@@ -8,19 +8,19 @@
 // Column API
 // -----------------------------------------------------
 
-#define COLDRAW_COL(idx,start,end,light) (((idx&511)<<1) | ((start&255)<<10) | ((end&255)<<18) | ((light&15)<<26))
+#define COLDRAW_COL(idx,start,end,light) ((idx) | ((start&255)<<10) | ((end&255)<<18) | ((light&15)<<26))
 
 #define WALL        (0<<30)
 #define PLANE       (1<<30)
 #define TERRAIN     (2<<30)
 #define PARAMETER   (3<<30)
 
-#define COLDRAW_WALL(y,v_init,u_init) ((  y) & 32767) | ((((v_init))&511)<<15) | (((u_init)&255) << 24)
+#define COLDRAW_WALL(y,v_init,u_init) ((  y) & 65535) | ((((v_init))&255)<<16) | (((u_init)&255) << 24)
 #define COLDRAW_TERRAIN(st,ed,pick)   (( ed) & 65535) | (((st) & 65535)<<16) | (pick)
 #define COLDRAW_PLANE_B(ded,dr)       ((ded) & 65535) | (((dr) & 65535) << 16)
 
 #define PICK        (1<<31)
-#define COLDRAW_EOC (1)
+#define COLDRAW_EOC (1 | PARAMETER)
 
 // parameter: ray cs (terrain)
 #define PARAMETER_RAY_CS(cs,ss)      (0<<30) | (( cs) & 16383) | ((   ss & 16383 )<<14)

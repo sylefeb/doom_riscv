@@ -98,6 +98,8 @@ int                     dc_u;
 byte                    dc_light;
 // additional offset to v coordinate
 int                     dc_voffset;
+// when set, draws at depth 0
+int                     dc_is_overlay;
 
 // just for profiling
 int                     dccount;
@@ -192,7 +194,7 @@ void R_DrawColumn (void)
     rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
     rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
-    rec->wall.vinit = ((frac + dc_voffset) >> 15);
+    rec->wall.vinit = ((frac + dc_voffset) >> 16);
     rec->wall.u = dc_u;
     rec->texid  = dc_texid;
     rec->light  = 15; // dc_light;

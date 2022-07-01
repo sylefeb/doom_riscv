@@ -175,8 +175,11 @@ R_RenderMaskedSegRange
             sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
             dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
-            // TODO:prepare parameters for GPU commands
-            // NOTE: these textures are 'patches' not currently in the texture pack
+            // prepare parameters for GPU commands
+            dc_texid   = 1 + texnum;
+            dc_u       = maskedtexturecol[dc_x];
+            dc_voffset = 0;
+            dc_is_overlay = 0;
 
             // draw the texture
             col = (column_t *)(
@@ -272,7 +275,7 @@ void R_RenderSegLoop (void)
                 floorplane->bottom[rw_x] = bottom;
 
                 // add a flat span
-                if (0) {
+                if (1) {
                     t_spanrecord *rec = R_AddSpanRecord(rw_x);
                     rec->type  = SPAN_FLAT;
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
@@ -294,6 +297,7 @@ void R_RenderSegLoop (void)
             texturecolumn >>= FRACBITS;
             dc_u = texturecolumn;
             dc_voffset = 0;
+            dc_is_overlay = 0;
             // calculate lighting
             index = rw_scale>>LIGHTSCALESHIFT;
 

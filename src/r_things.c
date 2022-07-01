@@ -435,8 +435,9 @@ R_DrawVisSprite
 
         ////// for GPU
         dc_u     = texturecolumn;
+        dc_is_overlay = 0;
         dc_texid = numtextures + numflats - 2 + vis->patch + 1;
-        //                                ^^^ 
+        //                                ^^^
         // engine counts 2 additional flats due to F1_START/F1_END
         //////
 
@@ -745,7 +746,12 @@ void R_DrawPSprite (pspdef_t* psp)
         vis->colormap = spritelights[MAXLIGHTSCALE-1];
     }
 
+    // GPU indicate sprite is an overlay
+    dc_is_overlay = 1;
+
     R_DrawVisSprite (vis, vis->x1, vis->x2);
+
+    dc_is_overlay = 0;
 }
 
 
