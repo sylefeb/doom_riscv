@@ -40,7 +40,7 @@ rcsid[] = "$Id: r_plane.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 #include "r_local.h"
 #include "r_sky.h"
 
-
+#if 0
 
 planefunction_t         floorfunc;
 planefunction_t         ceilingfunc;
@@ -50,17 +50,18 @@ planefunction_t         ceilingfunc;
 //
 
 // Here comes the obnoxious "visplane".
-#define MAXVISPLANES    128
-visplane_t              visplanes[MAXVISPLANES];
-visplane_t*             lastvisplane;
-visplane_t*             floorplane;
-visplane_t*             ceilingplane;
+//#define MAXVISPLANES    128
+//visplane_t              visplanes[MAXVISPLANES];
+//visplane_t*             lastvisplane;
+//visplane_t*             floorplane;
+//visplane_t*             ceilingplane;
+
+#endif
 
 // ?
 #define MAXOPENINGS     SCREENWIDTH*64
 short                   openings[MAXOPENINGS];
 short*                  lastopening;
-
 
 //
 // Clip values are the solid pixel bounding the range.
@@ -70,6 +71,7 @@ short*                  lastopening;
 short                   floorclip[SCREENWIDTH];
 short                   ceilingclip[SCREENWIDTH];
 
+#if 0
 //
 // spanstart holds the start of a plane span
 // initialized to 0 at start
@@ -177,7 +179,7 @@ R_MapPlane
     // high or low detail
     spanfunc ();
 }
-
+#endif
 
 //
 // R_ClearPlanes
@@ -186,7 +188,7 @@ R_MapPlane
 void R_ClearPlanes (void)
 {
     int         i;
-    angle_t     angle;
+    //angle_t     angle;
 
     // opening / clipping determination
     for (i=0 ; i<viewwidth ; i++)
@@ -195,9 +197,10 @@ void R_ClearPlanes (void)
         ceilingclip[i] = -1;
     }
 
-    lastvisplane = visplanes;
+    //lastvisplane = visplanes;
     lastopening = openings;
 
+/*
     // texture calculation
     memset (cachedheight, 0, sizeof(cachedheight));
 
@@ -207,10 +210,11 @@ void R_ClearPlanes (void)
     // scale will be unit scale at SCREENWIDTH/2 distance
     basexscale = FixedDiv (finecosine[angle],centerxfrac);
     baseyscale = -FixedDiv (finesine[angle],centerxfrac);
+*/
 }
 
 
-
+#if 0
 
 //
 // R_FindPlane
@@ -452,3 +456,5 @@ void R_DrawPlanes (void)
         Z_ChangeTag (ds_source, PU_CACHE);
     }
 }
+
+#endif

@@ -239,8 +239,8 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-                ceilingplane->top[rw_x] = top;
-                ceilingplane->bottom[rw_x] = bottom;
+                //ceilingplane->top[rw_x] = top;
+                //ceilingplane->bottom[rw_x] = bottom;
 
                 // add a flat span
                 if (1) {
@@ -271,8 +271,8 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-                floorplane->top[rw_x] = top;
-                floorplane->bottom[rw_x] = bottom;
+                //floorplane->top[rw_x] = top;
+                //floorplane->bottom[rw_x] = bottom;
 
                 // add a flat span
                 if (1) {
@@ -743,10 +743,10 @@ R_StoreWallRange
 
     // render it
     if (markceiling)
-        ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
+        //ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
 
     if (markfloor)
-        floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
+        //floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
 
     R_RenderSegLoop ();
 

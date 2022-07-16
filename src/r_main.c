@@ -729,6 +729,7 @@ void R_ExecuteSetViewSize (void)
         screenheightarray[i] = viewheight;
 
     // planes
+/*    
     for (i=0 ; i<viewheight ; i++)
     {
         dy = ((i-viewheight/2)<<FRACBITS)+FRACUNIT/2;
@@ -741,6 +742,7 @@ void R_ExecuteSetViewSize (void)
         cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
         distscale[i] = FixedDiv (FRACUNIT,cosadj);
     }
+*/
 
     // Calculate the light levels to use
     //  for each level / scale combination.
@@ -785,8 +787,8 @@ void R_Init (void)
     printf ("\nR_InitTables");
 
     R_SetViewSize (screenblocks, detailLevel);
-    R_InitPlanes ();
-    printf ("\nR_InitPlanes");
+    //R_InitPlanes ();
+    //printf ("\nR_InitPlanes");
     R_InitLightTables ();
     printf ("\nR_InitLightTables");
     R_InitSkyMap ();
@@ -892,7 +894,7 @@ void R_RenderPlayerView (player_t* player)
     // Check for new console commands.
     NetUpdate ();
 
-    R_DrawPlanes ();
+    // R_DrawPlanes ();
 
     // Check for new console commands.
     NetUpdate ();
