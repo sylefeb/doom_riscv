@@ -686,8 +686,8 @@ P_SetupLevel
     //  UNUSED P_ConnectSubsectors ();
 
     // preload graphics
-    if (precache)
-        R_PrecacheLevel ();
+    //if (precache)
+    //    R_PrecacheLevel ();
 
     //printf ("free memory: 0x%x\n", Z_FreeMemory());
 

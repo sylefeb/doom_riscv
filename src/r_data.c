@@ -235,7 +235,7 @@ void R_GenerateComposite (int texnum)
     short*              collump;
     unsigned short*     colofs;
 
-printf("*********************************************** R_GenerateComposite %d\n\n",texnum);
+I_Error("*********************************************** R_GenerateComposite %d\n\n",texnum);
 
     texture = textures[texnum];
 
@@ -400,7 +400,7 @@ R_GetColumn
 }
 
 
-
+extern int zmalloc_tot_size;
 
 //
 // R_InitTextures
@@ -478,7 +478,6 @@ void R_InitTextures (void)
     }
     numtextures = numtextures1 + numtextures2;
     printf(" numtextures: %d\n",numtextures);
-
     textures = Z_Malloc (numtextures*4, PU_STATIC, 0);
     texturecolumnlump = Z_Malloc (numtextures*4, PU_STATIC, 0);
     texturecolumnofs = Z_Malloc (numtextures*4, PU_STATIC, 0);
@@ -500,6 +499,8 @@ void R_InitTextures (void)
     for (i = 0; i < temp3; i++)
         printf("\x8");
     printf("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8");
+
+    printf("Z_Malloc tot size : %d\n", zmalloc_tot_size );
 
     for (i=0 ; i<numtextures ; i++, directory++)
     {
@@ -545,8 +546,8 @@ void R_InitTextures (void)
                          texture->name);
             }
         }
-        texturecolumnlump[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
-        texturecolumnofs[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
+        //texturecolumnlump[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
+        //texturecolumnofs[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
 
         j = 1;
         while (j*2 <= texture->width)
@@ -558,13 +559,15 @@ void R_InitTextures (void)
         totalwidth += texture->width;
     }
 
+    printf("Z_Malloc tot size : %d\n", zmalloc_tot_size );
+
     Z_Free (maptex1);
     if (maptex2)
         Z_Free (maptex2);
 
     // Precalculate whatever possible.
-    for (i=0 ; i<numtextures ; i++)
-        R_GenerateLookup (i);
+    //for (i=0 ; i<numtextures ; i++)
+    //    R_GenerateLookup (i);
 
     // Create translation table for global animation.
     texturetranslation = Z_Malloc ((numtextures+1)*4, PU_STATIC, 0);
@@ -573,7 +576,7 @@ void R_InitTextures (void)
         texturetranslation[i] = i;
 
     // output name <-> id
-    {
+    /*{
         FILE *f;
         f = fopen("textures.nfo","w");
         fprintf(f,"%3d\n",numtextures);
@@ -584,7 +587,7 @@ void R_InitTextures (void)
             fprintf(f,"%3d %s\n",i,tmp);
         }
         fclose(f);
-    }
+    }*/
 
 }
 
@@ -673,13 +676,17 @@ void R_InitColormaps (void)
 void R_InitData (void)
 {
     R_InitTextures ();
-    printf ("\nInitTextures");
+    printf ("\nInitTextures");    
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitFlats ();
     printf ("\nInitFlats");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitSpriteLumps ();
     printf ("\nInitSprites");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitColormaps ();
     printf ("\nInitColormaps");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
 }
 
 
@@ -779,13 +786,12 @@ void R_PrecacheLevel (void)
     // Precache flats.
     flatpresent = alloca(numflats);
     memset (flatpresent,0,numflats);
-/*
     for (i=0 ; i<numsectors ; i++)
     {
         flatpresent[sectors[i].floorpic] = 1;
         flatpresent[sectors[i].ceilingpic] = 1;
     }
-*/
+
     flatmemory = 0;
 
     for (i=0 ; i<numflats ; i++)
@@ -802,14 +808,13 @@ void R_PrecacheLevel (void)
     // Precache textures.
     texturepresent = alloca(numtextures);
     memset (texturepresent,0, numtextures);
-/*
     for (i=0 ; i<numsides ; i++)
     {
         texturepresent[sides[i].toptexture] = 1;
         texturepresent[sides[i].midtexture] = 1;
         texturepresent[sides[i].bottomtexture] = 1;
     }
-*/
+
     // Sky texture is always present.
     // Note that F_SKY1 is the name used to
     //  indicate a sky floor/ceiling as a flat,

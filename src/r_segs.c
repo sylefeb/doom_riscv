@@ -182,10 +182,10 @@ R_RenderMaskedSegRange
             dc_is_overlay = 0;
 
             // draw the texture
-            col = (column_t *)(
-                (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+            //col = (column_t *)(
+            //    (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
 
-            R_DrawMaskedColumn (col);
+            R_DrawMaskedColumn (/*col*/NULL);
             maskedtexturecol[dc_x] = MAXSHORT;
         }
         spryscale += rw_scalestep;

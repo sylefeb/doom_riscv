@@ -765,36 +765,42 @@ void R_ExecuteSetViewSize (void)
 }
 
 
-
 //
 // R_Init
 //
 extern int      detailLevel;
 extern int      screenblocks;
 
-
+extern int zmalloc_tot_size;
 
 void R_Init (void)
 {
     R_InitData ();
     printf ("\nR_InitData");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitSpanRecords ();
     printf ("\nR_InitSpanRecords");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitPointToAngle ();
     printf ("\nR_InitPointToAngle");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitTables ();
     // viewwidth / viewheight / detailLevel are set by the defaults
     printf ("\nR_InitTables");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
 
     R_SetViewSize (screenblocks, detailLevel);
     //R_InitPlanes ();
     //printf ("\nR_InitPlanes");
     R_InitLightTables ();
     printf ("\nR_InitLightTables");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitSkyMap ();
     printf ("\nR_InitSkyMap");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitTranslationTables ();
     printf ("\nR_InitTranslationsTables");
+    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
 
     framecount = 0;
 }

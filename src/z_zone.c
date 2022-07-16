@@ -117,6 +117,8 @@ void Z_Init (void)
     block->size = mainzone->size - sizeof(memzone_t);
 }
 
+int zmalloc_tot_size = 0;
+
 
 //
 // Z_Free
@@ -144,6 +146,7 @@ void Z_Free (void* ptr)
     block->user = NULL;
     block->tag = 0;
     block->id = 0;
+    // zmalloc_tot_size -= block->size;
 
     other = block->prev;
 
@@ -172,8 +175,6 @@ void Z_Free (void* ptr)
             mainzone->rover = block;
     }
 }
-
-
 
 //
 // Z_Malloc
@@ -204,6 +205,8 @@ Z_Malloc
     // account for size of block header
     size += sizeof(memblock_t);
 
+    zmalloc_tot_size += size;
+
     // if there is a free block behind the rover,
     //  back up over them
     base = mainzone->rover;
@@ -218,6 +221,7 @@ Z_Malloc
     {
         if (rover == start)
         {
+            // Z_FileDumpHeap(stdout);
             // scanned all the way around the list
             I_Error ("Z_Malloc: failed on allocation of %i bytes", size);
         }
