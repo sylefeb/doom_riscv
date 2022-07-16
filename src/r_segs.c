@@ -317,7 +317,7 @@ void R_RenderSegLoop (void)
             dc_yh = yh;
             dc_texturemid = rw_midtexturemid;
             dc_texid = 1 + midtexture;
-            dc_source = R_GetColumn(midtexture,texturecolumn);
+            dc_source = NULL; //R_GetColumn(midtexture,texturecolumn);
             colfunc ();
             ceilingclip[rw_x] = viewheight;
             floorclip[rw_x] = -1;
@@ -340,7 +340,7 @@ void R_RenderSegLoop (void)
                     dc_yh = mid;
                     dc_texturemid = rw_toptexturemid;
                     dc_texid = 1 + toptexture;
-                    dc_source = R_GetColumn(toptexture,texturecolumn);
+                    dc_source = NULL; // R_GetColumn(toptexture,texturecolumn);
                     colfunc ();
                     ceilingclip[rw_x] = mid;
                 }
@@ -371,8 +371,7 @@ void R_RenderSegLoop (void)
                     dc_yh = yh;
                     dc_texturemid = rw_bottomtexturemid;
                     dc_texid = 1 + bottomtexture;
-                    dc_source = R_GetColumn(bottomtexture,
-                                            texturecolumn);
+                    dc_source = NULL; //R_GetColumn(bottomtexture, texturecolumn);
                     colfunc ();
                     floorclip[rw_x] = mid;
                 }

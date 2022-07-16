@@ -235,6 +235,8 @@ void R_GenerateComposite (int texnum)
     short*              collump;
     unsigned short*     colofs;
 
+printf("*********************************************** R_GenerateComposite %d\n\n",texnum);
+
     texture = textures[texnum];
 
     block = Z_Malloc (texturecompositesize[texnum],
@@ -282,6 +284,7 @@ void R_GenerateComposite (int texnum)
     // Now that the texture has been built in column cache,
     //  it is purgable from zone memory.
     Z_ChangeTag (block, PU_CACHE);
+
 }
 
 
@@ -799,14 +802,14 @@ void R_PrecacheLevel (void)
     // Precache textures.
     texturepresent = alloca(numtextures);
     memset (texturepresent,0, numtextures);
-
+/*
     for (i=0 ; i<numsides ; i++)
     {
         texturepresent[sides[i].toptexture] = 1;
         texturepresent[sides[i].midtexture] = 1;
         texturepresent[sides[i].bottomtexture] = 1;
     }
-
+*/
     // Sky texture is always present.
     // Note that F_SKY1 is the name used to
     //  indicate a sky floor/ceiling as a flat,

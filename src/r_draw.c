@@ -199,6 +199,8 @@ void R_DrawColumn (void)
     rec->texid  = dc_texid;
     rec->light  = 15; // dc_light;
 
+    if (!dc_source) return; // texture removed
+
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-like scaling.
     // This is as fast as it gets.

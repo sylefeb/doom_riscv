@@ -470,6 +470,8 @@ W_ReadLump
 
 
 
+extern int             firstflat;
+extern int             lastflat;
 
 //
 // W_CacheLumpNum
@@ -479,14 +481,17 @@ W_CacheLumpNum
 ( int           lump,
   int           tag )
 {
-    if ((unsigned)lump >= numlumps)
+    if ((unsigned)lump >= numlumps) {
         I_Error ("W_CacheLumpNum: %i >= numlumps",lump);
+    }
 
     if (!lumpcache[lump])
     {
         // read the lump in
-
-        //printf ("cache miss on lump %i\n",lump);
+        // printf ("cache miss on lump %i\n",lump);
+        if (lump > firstflat && lump < lastflat) {
+            printf ("********************** cache miss on FLAT lump %i\n",lump);
+        }
         Z_Malloc (W_LumpLength (lump), tag, &lumpcache[lump]);
         W_ReadLump (lump, lumpcache[lump]);
     }
