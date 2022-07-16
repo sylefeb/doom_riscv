@@ -776,13 +776,13 @@ void R_PrecacheLevel (void)
     // Precache flats.
     flatpresent = alloca(numflats);
     memset (flatpresent,0,numflats);
-
+/*
     for (i=0 ; i<numsectors ; i++)
     {
         flatpresent[sectors[i].floorpic] = 1;
         flatpresent[sectors[i].ceilingpic] = 1;
     }
-
+*/
     flatmemory = 0;
 
     for (i=0 ; i<numflats ; i++)
@@ -794,6 +794,7 @@ void R_PrecacheLevel (void)
             W_CacheLumpNum(lump, PU_CACHE);
         }
     }
+    printf("flat memory: %d\n",flatmemory);
 
     // Precache textures.
     texturepresent = alloca(numtextures);
@@ -829,6 +830,7 @@ void R_PrecacheLevel (void)
             W_CacheLumpNum(lump , PU_CACHE);
         }
     }
+    printf("texture memory: %d\n",texturememory);
 
     // Precache sprites.
     spritepresent = alloca(numsprites);
