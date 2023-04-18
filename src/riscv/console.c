@@ -20,51 +20,40 @@
 #include "config.h"
 #include "mini-printf.h"
 
-
-struct wb_uart {
-	uint32_t data;
-	uint32_t clkdiv;
-} __attribute__((packed,aligned(4)));
-
-static volatile struct wb_uart * const uart_regs = (void*)(UART_BASE);
-
+static volatile char * const UART = (void*)(PTR_UART_BASE);
 
 void
 console_init(void)
 {
-	uart_regs->clkdiv = 23;	/* 1 Mbaud with clk=25MHz */
+
 }
 
 void
 console_putchar(char c)
 {
-	uart_regs->data = c;
+  (*UART) = c;
+  for (int i=0;i<64;i++) { asm volatile ("nop;"); }
 }
 
 char
 console_getchar(void)
 {
-	int32_t c;
-	do {
-		c = uart_regs->data;
-	} while (c & 0x80000000);
-	return c;
+  return -1;
 }
 
 int
 console_getchar_nowait(void)
 {
-	int32_t c;
-	c = uart_regs->data;
-	return c & 0x80000000 ? -1 : (c & 0xff);
+  return -1;
 }
 
 void
 console_puts(const char *p)
 {
 	char c;
-	while ((c = *(p++)) != 0x00)
-		uart_regs->data = c;
+	while ((c = *(p++)) != 0x00) {
+    console_putchar(c);
+  }
 }
 
 int

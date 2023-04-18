@@ -1,8 +1,7 @@
 MEMORY
 {
-    ROM   (xr)  : ORIGIN = 0x40100000, LENGTH = 0x100000	/* 1024k */
-    PSRAM (xrw) : ORIGIN = 0x41000000, LENGTH = 0x800000	/* 8192k */
-    BRAM  (xrw) : ORIGIN = 0x00000010, LENGTH = 0x03f0		/*  ~ 1k */
+    ROM   (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/*  1BM */
+    PSRAM (xrw) : ORIGIN = 0x00100000, LENGTH = 0xC00000	/* 12MB */
 }
 ENTRY(_start)
 SECTIONS {

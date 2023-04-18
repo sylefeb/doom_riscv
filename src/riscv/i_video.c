@@ -15,6 +15,9 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+
+ // SL: modified for the icestick doom
+
  */
 
 #include <stdint.h>
@@ -27,12 +30,27 @@
 #include "i_video.h"
 
 #include "config.h"
+#include <stdlib.h>
 
+static volatile int * const SPISCREEN	    = PTR_SPISCREEN;
+static volatile int * const SPISCREEN_RST	= PTR_SPISCREEN_RST;
+
+#include "spiscreen.h"
+
+static uint16_t *video_pal = NULL;
 
 void
 I_InitGraphics(void)
 {
-	/* Don't need to do anything really ... */
+
+  // initialize SPIscreen
+  spiscreen_init();
+  spiscreen_fullscreen();
+  spiscreen_clear(0xff);
+
+  video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
+
+	/* Don't need to do anything else really ... */
 
 	/* Ok, maybe just set gamma default */
 	usegamma = 1;
@@ -48,17 +66,15 @@ I_ShutdownGraphics(void)
 void
 I_SetPalette(byte* palette)
 {
-	static volatile uint32_t * const video_pal = (void*)(VID_PAL_BASE);
 	byte r, g, b;
 
 	for (int i=0 ; i<256 ; i++) {
 		r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-		video_pal[i] = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
+		video_pal[i] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 	}
 }
-
 
 void
 I_UpdateNoBlit(void)
@@ -68,15 +84,28 @@ I_UpdateNoBlit(void)
 void
 I_FinishUpdate (void)
 {
-	/* Copy from RAM buffer to frame buffer */
-	memcpy(
-		(void*)VID_FB_BASE,
-		screens[0],
-		SCREENHEIGHT * SCREENWIDTH
-	);
+  /// painstakingly send frame to the SPIscreen
+  const unsigned char *ptr_col = screens[0];
+  for (int v=0;v<SCREEN_WIDTH;v++) {
+    const unsigned char *ptr = ptr_col;
+    int dupl = 0;
+    for (int u=0;u<SCREEN_HEIGHT;u++) {
+      uint16_t clr = video_pal[*ptr];
+      uint8_t  h   = clr>>8;
+      uint8_t  l   = clr&255;
+      spiscreen_pix_565(h,l);
+      ++ dupl;
+      if (dupl == 6) {
+        dupl = 0;
+      } else {
+        ptr += SCREEN_WIDTH;
+      }
+    }
+    ++ptr_col;
+  }
 
 	/* Very crude FPS measure (time to render 100 frames */
-#if 1
+#if 0
 	static int frame_cnt = 0;
 	static int tick_prev = 0;
 
@@ -95,23 +124,19 @@ void
 I_WaitVBL(int count)
 {
 	/* Buys-Wait for VBL status bit */
-	static volatile uint32_t * const video_state = (void*)(VID_CTRL_BASE);
-	while (!(video_state[0] & (1<<16)));
+  // SL: TODO
 }
 
 
 void
 I_ReadScreen(byte* scr)
 {
-	/* FIXME: Would have though reading from VID_FB_BASE be better ...
-	 *        but it seems buggy. Not sure if the problem is in the
-	 *        gateware
-	 */
 	memcpy(
 		scr,
 		screens[0],
 		SCREENHEIGHT * SCREENWIDTH
 	);
+
 }
 
 

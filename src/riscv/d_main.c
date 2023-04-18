@@ -346,10 +346,13 @@ void D_Display (void)
 //
 void D_DoomLoop (void)
 {
+    printf("I_InitGraphics ... ");
     I_InitGraphics ();
+    printf("done.\n");
 
     while (1)
     {
+
         // frame syncronous IO operations
         I_StartFrame ();
 
@@ -370,9 +373,9 @@ void D_DoomLoop (void)
         {
             TryRunTics (); // will run at least one tic
         }
-
         // Update display, next frame, with current state.
         D_Display ();
+
     }
 }
 
@@ -542,13 +545,13 @@ void IdentifyVersion (void)
 #elif 0
     gamemode = commercial;
     D_AddFile ("tnt.wad");
-#elif 1
+#elif 0
     gamemode = retail;
     D_AddFile ("doomu.wad");
 #elif 0
     gamemode = registered;
     D_AddFile ("doom.wad");
-#elif 0
+#elif 1
     gamemode = shareware;
     D_AddFile ("doom1.wad");
 #else
@@ -631,5 +634,6 @@ void D_DoomMain (void)
             D_StartTitle ();                // start up intro loop
     }
 
+    printf ("Entering D_DoomLoop.\n");
     D_DoomLoop ();  // never returns
 }

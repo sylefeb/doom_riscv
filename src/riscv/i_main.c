@@ -19,9 +19,11 @@
 
 #include "doomdef.h"
 #include "d_main.h"
+#include "console.h"
 
 int main(void)
 {
+  console_printf("ABCDEFGHIJKLMNOP___\n");
 	D_DoomMain();
 	return 0;
 }
