@@ -28,7 +28,7 @@ console_init(void)
 
 }
 
-void
+__attribute__((section(".fastram"),noinline)) void
 console_putchar(char c)
 {
   (*UART) = c;

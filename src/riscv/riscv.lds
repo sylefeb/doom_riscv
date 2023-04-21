@@ -1,7 +1,8 @@
 MEMORY
 {
-    ROM   (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/*  1BM */
-    PSRAM (xrw) : ORIGIN = 0x00100000, LENGTH = 0xC00000	/* 12MB */
+    ROM     (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/*  1BM */
+    PSRAM   (xrw) : ORIGIN = 0x00100000, LENGTH = 0xC00000	/* 12MB */
+    FASTRAM (xrw) : ORIGIN = 0x03800000, LENGTH = 0x000400	/*  1KB */
 }
 ENTRY(_start)
 SECTIONS {
@@ -33,6 +34,15 @@ SECTIONS {
         . = ALIGN(4);
         _edata = .;
     } >PSRAM
+    .fastram : AT ( _sidata + _edata - _sdata )
+    {
+        . = ALIGN(4);
+        _sfastram = .;
+        *(.fastram)
+        . = ALIGN(4);
+        _efastram = .;
+    } >FASTRAM
+    __fastram_start_in_rom = _sidata + _edata - _sdata;
     .bss :
     {
         . = ALIGN(4);

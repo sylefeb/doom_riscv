@@ -81,7 +81,7 @@ I_UpdateNoBlit(void)
 {
 }
 
-void
+__attribute__((section(".fastram"))) void
 I_FinishUpdate (void)
 {
   /// painstakingly send frame to the SPIscreen

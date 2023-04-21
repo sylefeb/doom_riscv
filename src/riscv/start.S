@@ -22,8 +22,8 @@
 _start:
 
 	// Init .data section from flash
-	la a0, _sidata
-	la a1, _sdata
+	la a0, _sidata # from
+	la a1, _sdata  # to
 	la a2, _edata
 	bge a1, a2, end_init_data
 loop_init_data:
@@ -33,6 +33,19 @@ loop_init_data:
 	addi a1, a1, 4
 	blt a1, a2, loop_init_data
 end_init_data:
+
+	// Init .fastram section from flash
+	la a0, __fastram_start_in_rom # from
+	la a1, _sfastram  # to
+	la a2, _efastram
+	bge a1, a2, end_init_fastram
+loop_init_fastram:
+	lw a3, 0(a0)
+	sw a3, 0(a1)
+	addi a0, a0, 4
+	addi a1, a1, 4
+	blt a1, a2, loop_init_fastram
+end_init_fastram:
 
 	// Clear .bss section
 	la a0, _sbss
