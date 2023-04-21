@@ -3,10 +3,9 @@
 // https://github.com/sylefeb/Silice
 
 #define SPISCREEN_CMD   (1<< 9)
-#define SPISCREEN_DTA   (1<<10)
 
-#define DELAY      (1<<16)
-static inline void wait()  { /*asm volatile ("nop; nop; nop; nop; nop; nop; nop; nop; nop;");*/ }
+#define DELAY      (1<<17)
+static inline void wait()  { asm volatile ("nop;"); }
 static inline void pause() { for (int i=0;i<DELAY;i++) { asm volatile ("nop;"); } }
 
 #define WAIT wait()
@@ -36,13 +35,13 @@ void spiscreen_init()
   // colmod
   *(SPISCREEN) = (0x3A) | SPISCREEN_CMD;
   WAIT;
-  *(SPISCREEN) = (0x55) | SPISCREEN_DTA;
+  *(SPISCREEN) = (0x55);
   // long wait
   pause();
   // madctl
   *(SPISCREEN) = (0x36) | SPISCREEN_CMD;
   WAIT;
-  *(SPISCREEN) = (0x40) | SPISCREEN_DTA;
+  *(SPISCREEN) = (0x40);
   // long wait
   pause();
   // invon
@@ -54,7 +53,7 @@ void spiscreen_init()
   // brightness
   *(SPISCREEN) = (0x51) | SPISCREEN_CMD;
   WAIT;
-  *(SPISCREEN) = (0xFF) | SPISCREEN_DTA;
+  *(SPISCREEN) = (0xFF);
   WAIT;
   // display on
   *(SPISCREEN) = (0x29) | SPISCREEN_CMD;
@@ -71,24 +70,24 @@ void spiscreen_fullscreen()
   // set col addr
   *(SPISCREEN) = (0x2A) | SPISCREEN_CMD;
   WAIT;
-  *(SPISCREEN) = (   0) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   0);
   WAIT;
-  *(SPISCREEN) = (   0) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   0);
   WAIT;
-  *(SPISCREEN) = ( (((SCREEN_HEIGHT-1)>>8)&255) ) | SPISCREEN_DTA;
+  *(SPISCREEN) = ( (((SCREEN_HEIGHT-1)>>8)&255) );
   WAIT;
-  *(SPISCREEN) = (   (SCREEN_HEIGHT-1)  &255 ) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   (SCREEN_HEIGHT-1)  &255 );
   WAIT;
   // set row addr
   *(SPISCREEN) = (0x2B) | SPISCREEN_CMD;
   WAIT;
-  *(SPISCREEN) = (   0) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   0);
   WAIT;
-  *(SPISCREEN) = (   0) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   0);
   WAIT;
-  *(SPISCREEN) = ( (((SCREEN_WIDTH-1)>>8)&255) ) | SPISCREEN_DTA;
+  *(SPISCREEN) = ( (((SCREEN_WIDTH-1)>>8)&255) );
   WAIT;
-  *(SPISCREEN) = (   (SCREEN_WIDTH-1)    &255 ) | SPISCREEN_DTA;
+  *(SPISCREEN) = (   (SCREEN_WIDTH-1)    &255 );
   WAIT;
   // initiate write
   *(SPISCREEN) = (0x2C) | SPISCREEN_CMD;
@@ -97,9 +96,8 @@ void spiscreen_fullscreen()
 
 static inline void spiscreen_pix_565(unsigned char b5g3,unsigned char g3r5)
 {
-    *(SPISCREEN) = SPISCREEN_DTA | b5g3;
-    // WAIT;
-    *(SPISCREEN) = SPISCREEN_DTA | g3r5;
+    *(SPISCREEN) = b5g3;
+    *(SPISCREEN) = g3r5;
 }
 
 void spiscreen_clear(unsigned char c)
@@ -107,7 +105,6 @@ void spiscreen_clear(unsigned char c)
   for (int u=0;u<SCREEN_WIDTH;u++) {
     for (int v=0;v<SCREEN_HEIGHT;v++) {
       spiscreen_pix_565(u,u);
-      WAIT;
     }
   }
 }

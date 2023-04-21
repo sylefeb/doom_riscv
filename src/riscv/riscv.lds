@@ -2,7 +2,7 @@ MEMORY
 {
     ROM     (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/*  1BM */
     PSRAM   (xrw) : ORIGIN = 0x00100000, LENGTH = 0xC00000	/* 12MB */
-    FASTRAM (xrw) : ORIGIN = 0x03800000, LENGTH = 0x000400	/*  1KB */
+    FASTRAM (xrw) : ORIGIN = 0x03800000, LENGTH = 0x000600	/* 2KB - 512(palette) bytes */
 }
 ENTRY(_start)
 SECTIONS {

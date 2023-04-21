@@ -35,9 +35,11 @@
 static volatile int * const SPISCREEN	    = PTR_SPISCREEN;
 static volatile int * const SPISCREEN_RST	= PTR_SPISCREEN_RST;
 
-#include "spiscreen.h"
+// Palette is at a fixed address in fastram
+static uint16_t *video_pal = 0x03800000 + 1024 + 512;
+// static uint16_t *video_pal = NULL;
 
-static uint16_t *video_pal = NULL;
+#include "spiscreen.h"
 
 void
 I_InitGraphics(void)
@@ -48,12 +50,12 @@ I_InitGraphics(void)
   spiscreen_fullscreen();
   spiscreen_clear(0xff);
 
-  video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
+  // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
 	/* Don't need to do anything else really ... */
 
 	/* Ok, maybe just set gamma default */
-	usegamma = 1;
+	usegamma = 0;
 }
 
 void
@@ -61,7 +63,6 @@ I_ShutdownGraphics(void)
 {
 	/* Don't need to do anything really ... */
 }
-
 
 void
 I_SetPalette(byte* palette)
@@ -93,7 +94,8 @@ I_FinishUpdate (void)
       uint16_t clr = video_pal[*ptr];
       uint8_t  h   = clr>>8;
       uint8_t  l   = clr&255;
-      spiscreen_pix_565(h,l);
+      *(SPISCREEN) = h;
+      *(SPISCREEN) = l;
       ++ dupl;
       if (dupl == 6) {
         dupl = 0;
@@ -128,14 +130,15 @@ I_WaitVBL(int count)
 }
 
 
+__attribute__((section(".fastram")))
 void
 I_ReadScreen(byte* scr)
 {
-	memcpy(
-		scr,
-		screens[0],
-		SCREENHEIGHT * SCREENWIDTH
-	);
+  unsigned int *to = (unsigned int *)scr;
+  const unsigned int *from = screens[0];
+  for (int i=0;i<(SCREENHEIGHT * SCREENWIDTH)>>2;++i) {
+    *(to++) = *(from++);
+  }
 
 }
 
