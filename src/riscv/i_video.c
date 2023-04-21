@@ -55,7 +55,7 @@ I_InitGraphics(void)
 	/* Don't need to do anything else really ... */
 
 	/* Ok, maybe just set gamma default */
-	usegamma = 0;
+	usegamma = 1;
 }
 
 void
@@ -88,22 +88,21 @@ I_FinishUpdate (void)
   /// painstakingly send frame to the SPIscreen
   const unsigned char *ptr_col = screens[0];
   for (int v=0;v<SCREEN_WIDTH;v++) {
-    const unsigned char *ptr = ptr_col;
+    const unsigned char *ptr = (ptr_col++);
     int dupl = 0;
     for (int u=0;u<SCREEN_HEIGHT;u++) {
       uint16_t clr = video_pal[*ptr];
       uint8_t  h   = clr>>8;
       uint8_t  l   = clr&255;
-      *(SPISCREEN) = h;
-      *(SPISCREEN) = l;
-      ++ dupl;
+      *(SPISCREEN) = h; // first byte
+      ++ dupl;          // increment source pointer
       if (dupl == 6) {
         dupl = 0;
       } else {
         ptr += SCREEN_WIDTH;
       }
+      *(SPISCREEN) = l; // second byte (done after to absorb sending delay...)
     }
-    ++ptr_col;
   }
 
 	/* Very crude FPS measure (time to render 100 frames */

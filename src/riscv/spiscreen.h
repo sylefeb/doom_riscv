@@ -4,8 +4,8 @@
 
 #define SPISCREEN_CMD   (1<< 9)
 
-#define DELAY      (1<<17)
-static inline void wait()  { asm volatile ("nop;"); }
+#define DELAY      (1<<16)
+static inline void wait()  {  }
 static inline void pause() { for (int i=0;i<DELAY;i++) { asm volatile ("nop;"); } }
 
 #define WAIT wait()
