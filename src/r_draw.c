@@ -100,7 +100,7 @@ int                     dccount;
 // Thus a special case loop for very fast rendering can
 //  be used. It has also been used with Wolfenstein 3D.
 //
-__attribute__((section(".fastram"),noinline))
+// __attribute__((section(".fastram"),noinline))
 void R_DrawColumn (void)
 {
     int                 count;
@@ -219,7 +219,7 @@ int     fuzzpos = 0;
 //  could create the SHADOW effect,
 //  i.e. spectres and invisible players.
 //
-__attribute__((section(".fastram"),noinline))
+// __attribute__((section(".fastram"),noinline))
 void R_DrawFuzzColumn (void)
 {
     int                 count;
@@ -455,7 +455,7 @@ int                     dscount;
 
 //
 // Draws the actual span.
-__attribute__((section(".fastram"),noinline))
+// __attribute__((section(".fastram"),noinline))
 void R_DrawSpan (void)
 {
     fixed_t             xfrac;
