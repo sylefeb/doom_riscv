@@ -82,13 +82,15 @@ typedef struct
 //
 typedef struct
 {
-    char                name[8];
-    boolean             masked;
-    short               width;
-    short               height;
-    void                **columndirectory;      // OBSOLETE
-    short               patchcount;
-    mappatch_t  patches[1];
+  char                name[8];
+  short               flags;
+  byte                scalex;
+  byte                scaley;
+  short               width;
+  short               height;
+  byte                columndirectory[4];     // OBSOLETE
+  short               patchcount;
+  mappatch_t          patches[1];
 } maptexture_t;
 
 
@@ -839,7 +841,3 @@ void R_PrecacheLevel (void)
         }
     }
 }
-
-
-
-

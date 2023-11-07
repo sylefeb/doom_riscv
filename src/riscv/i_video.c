@@ -32,21 +32,16 @@
 #include "config.h"
 #include <stdlib.h>
 
-static volatile int * const SPISCREEN	    = PTR_SPISCREEN;
-static volatile int * const SPISCREEN_RST	= PTR_SPISCREEN_RST;
-
 static uint16_t *video_pal = NULL;
 
-#include "spiscreen.h"
+#include "../../../libs/gpu.h"
 
 void
 I_InitGraphics(void)
 {
 
-  // initialize SPIscreen
-  spiscreen_init();
-  spiscreen_fullscreen();
-  spiscreen_clear(0xff);
+  // initialize GPU
+  gpu_init();
 
   video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
@@ -80,28 +75,38 @@ I_UpdateNoBlit(void)
 {
 }
 
-// __attribute__((section(".fastram"))) void
+static inline send_screen_byte(unsigned int by)
+{
+  *GPU = 0x00000000; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT;
+  *GPU = 0x00000001; GPU_COM_WAIT; *GPU = (by<<24);   GPU_COM_WAIT;
+}
+
 I_FinishUpdate (void)
 {
-  /// painstakingly send frame to the SPIscreen
+  printf("I_FinishUpdate\n");
+#if 1
+  const int W = 320;
+  const int H = 240;
+  /// painstakingly send frame to the gpu
   const unsigned char *ptr_col = screens[0];
-  for (int v=0;v<SCREEN_WIDTH;v++) {
+  for (int v=0;v<W;v++) {
     const unsigned char *ptr = (ptr_col++);
     int dupl = 0;
-    for (int u=0;u<SCREEN_HEIGHT;u++) {
+    for (int u=0;u<H;u++) {
       uint16_t clr = video_pal[*ptr];
       uint8_t  h   = clr>>8;
       uint8_t  l   = clr&255;
-      *(SPISCREEN) = h; // first byte
+      send_screen_byte(h); // first byte
       ++ dupl;          // increment source pointer
       if (dupl == 6) {
         dupl = 0;
       } else {
-        ptr += SCREEN_WIDTH;
+        ptr += W;
       }
-      *(SPISCREEN) = l; // second byte (done after to absorb sending delay...)
+      send_screen_byte(l); // second byte
     }
   }
+#endif
 
 	/* Very crude FPS measure (time to render 100 frames */
 #if 0
@@ -116,6 +121,7 @@ I_FinishUpdate (void)
 		frame_cnt = 0;
 	}
 #endif
+
 }
 
 
@@ -127,7 +133,6 @@ I_WaitVBL(int count)
 }
 
 
-// __attribute__((section(".fastram")))
 void
 I_ReadScreen(byte* scr)
 {

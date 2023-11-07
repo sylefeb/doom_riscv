@@ -1,7 +1,7 @@
 MEMORY
 {
-    ROM     (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/*  1BM */
-    PSRAM   (xrw) : ORIGIN = 0x00100000, LENGTH = 0xC00000	/* 12MB */
+    ROM     (xr)  : ORIGIN = 0x00000000, LENGTH = 0x100000	/* 1BM */
+    PSRAM   (xrw) : ORIGIN = 0x00100000, LENGTH = 0x700000	/* 7MB */
 }
 ENTRY(_start)
 SECTIONS {
@@ -49,5 +49,6 @@ SECTIONS {
     {
         . = ALIGN(4);
         _heap_start = .;
+        . = ALIGN(4);
     } >PSRAM
 }

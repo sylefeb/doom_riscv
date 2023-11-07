@@ -24,5 +24,3 @@
 #pragma once
 
 #define PTR_UART_BASE	    0x02000004
-#define PTR_SPISCREEN	    0x02000008
-#define PTR_SPISCREEN_RST	0x02000010

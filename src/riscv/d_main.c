@@ -346,6 +346,7 @@ void D_Display (void)
 //
 void D_DoomLoop (void)
 {
+
     printf("I_InitGraphics ... ");
     I_InitGraphics ();
     printf("done.\n");

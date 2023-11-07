@@ -40,7 +40,6 @@ rcsid[] = "$Id: m_bbox.c,v 1.1 1997/02/03 22:45:10 b1 Exp $";
 
 
 // Fixme. __USE_C_FIXED__ or something.
-// __attribute__((section(".fastram"),noinline))
 fixed_t
 FixedMul
 ( fixed_t       a,
@@ -54,7 +53,6 @@ FixedMul
 //
 // FixedDiv, C version.
 //
-// __attribute__((section(".fastram"),noinline))
 fixed_t
 FixedDiv
 ( fixed_t       a,
@@ -66,7 +64,6 @@ FixedDiv
 }
 
 
-// __attribute__((section(".fastram"),noinline))
 fixed_t
 FixedDiv2
 ( fixed_t       a,
