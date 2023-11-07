@@ -83,7 +83,6 @@ static inline send_screen_byte(unsigned int by)
 
 I_FinishUpdate (void)
 {
-  printf("I_FinishUpdate\n");
 #if 1
   const int W = 320;
   const int H = 240;

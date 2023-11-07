@@ -20,7 +20,7 @@
 	.section .text.start
 	.global _start
 _start:
-
+/*
 	// Init .data section from flash
 	la a0, _sidata # from
 	la a1, _sdata  # to
@@ -33,7 +33,7 @@ loop_init_data:
 	addi a1, a1, 4
 	blt a1, a2, loop_init_data
 end_init_data:
-
+*/
 	// Clear .bss section
 	la a0, _sbss
 	la a1, _ebss

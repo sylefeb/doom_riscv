@@ -33,7 +33,7 @@ console_putchar(char c)
   (*UART) = c;
   // Delay to let hardware UART send the byte before the next one.
   // Very innefficient but printf should be limited to init/debug.
-  for (int i=0;i<128;i++) { asm volatile ("nop;"); }
+  for (int i=0;i<1024;i++) { asm volatile ("nop;"); }
 }
 
 char

@@ -60,7 +60,7 @@ static struct {
 	size_t      len;	/* Length */
 	void *      addr;	/* Address in flash */
 } fs[] = {
-	{ "doom1.wad", 4196020, (void*)0x00800000 },
+	{ "doom1.wad", 4196020, (void*)0x00900000 },
 	{ NULL }
 };
 
