@@ -740,4 +740,3 @@ R_StoreWallRange
     }
     ds_p++;
 }
-

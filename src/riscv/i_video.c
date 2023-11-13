@@ -34,14 +34,19 @@
 
 static uint16_t *video_pal = NULL;
 
+// #define SIMULATION
+// #define NO_DISPLAY
+
 #include "../../../libs/gpu.h"
 
 void
 I_InitGraphics(void)
 {
 
+#ifndef NO_DISPLAY
   // initialize GPU
   gpu_init();
+#endif
 
   video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
@@ -83,7 +88,7 @@ static inline send_screen_byte(unsigned int by)
 
 I_FinishUpdate (void)
 {
-#if 1
+#ifndef NO_DISPLAY
   const int W = 320;
   const int H = 240;
   /// painstakingly send frame to the gpu
@@ -105,6 +110,8 @@ I_FinishUpdate (void)
       send_screen_byte(l); // second byte
     }
   }
+#else
+  printf("----- frame done -----\n");
 #endif
 
 	/* Very crude FPS measure (time to render 100 frames */
