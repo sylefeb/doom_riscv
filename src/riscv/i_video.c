@@ -71,7 +71,7 @@ I_SetPalette(byte* palette)
 		r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-		video_pal[i] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+		video_pal[i] = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3);
 	}
 }
 

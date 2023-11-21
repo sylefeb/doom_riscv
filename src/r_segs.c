@@ -421,6 +421,8 @@ R_StoreWallRange
         ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
         ds_p->scalestep = rw_scalestep =
             (ds_p->scale2 - rw_scale) / (stop-start);
+        printf("%d\n",rw_scalestep); //////////////////////////////////////// required for div to not
+        //////////////////////////////////////////////////// be negative in hardware? investigate!
     }
     else
     {
