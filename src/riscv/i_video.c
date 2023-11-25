@@ -93,23 +93,26 @@ I_FinishUpdate (void)
   const int H = 240;
   /// painstakingly send frame to the gpu
   const unsigned char *ptr_col = screens[0];
+  cpu_frame_start();
   for (int v=0;v<W;v++) {
     const unsigned char *ptr = (ptr_col++);
     int dupl = 0;
     for (int u=0;u<H;u++) {
       uint16_t clr = video_pal[*ptr];
-      uint8_t  h   = clr>>8;
-      uint8_t  l   = clr&255;
-      send_screen_byte(h); // first byte
+      cpu_frame_pixel_565(clr);
+      //uint8_t  h   = clr>>8;
+      //uint8_t  l   = clr&255;
+      //send_screen_byte(h); // first byte
       ++ dupl;          // increment source pointer
       if (dupl == 6) {
         dupl = 0;
       } else {
         ptr += W;
       }
-      send_screen_byte(l); // second byte
+      //send_screen_byte(l); // second byte
     }
   }
+  cpu_frame_end();
 #else
   printf("----- frame done -----\n");
 #endif
