@@ -421,7 +421,7 @@ R_StoreWallRange
         ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
         ds_p->scalestep = rw_scalestep =
             (ds_p->scale2 - rw_scale) / (stop-start);
-        printf("%d = %d/%d\n",rw_scalestep,(ds_p->scale2 - rw_scale),(stop-start)); //////////////////////////////////////// required for div to not
+        // printf("%d = %d/%d\n",rw_scalestep,(ds_p->scale2 - rw_scale),(stop-start)); //////////////////////////////////////// required for div to not
         ////////////////////////////////////////////////////  investigate!
     }
     else
