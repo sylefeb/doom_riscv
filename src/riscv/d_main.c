@@ -79,6 +79,12 @@ rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 #include "d_main.h"
 
+static inline void trace_toggle()
+{
+  *((int*)0x2000004) = 0xffffffff;
+}
+
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -317,7 +323,7 @@ void D_Display (void)
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
-
+#if 0 // disable wipe
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -337,6 +343,7 @@ void D_Display (void)
         M_Drawer ();                            // menu is drawn even on top of wipes
         I_FinishUpdate ();                      // page flip or blit buffer
     } while (!done);
+#endif
 }
 
 

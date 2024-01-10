@@ -32,7 +32,7 @@
 #include "config.h"
 #include <stdlib.h>
 
-static uint16_t *video_pal = NULL;
+// static uint16_t *video_pal = NULL;
 
 // #define SIMULATION
 // #define NO_DISPLAY
@@ -48,12 +48,12 @@ I_InitGraphics(void)
   gpu_init();
 #endif
 
-  video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
+  // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
 	/* Don't need to do anything else really ... */
 
 	/* Ok, maybe just set gamma default */
-	usegamma = 1;
+	usegamma = 0;
 }
 
 void
@@ -67,12 +67,20 @@ I_SetPalette(byte* palette)
 {
 	byte r, g, b;
 
-	for (int i=0 ; i<256 ; i++) {
-		r = gammatable[usegamma][*palette++];
+  cpu_pal_start();
+  for (int i=0 ; i<256 ; i++) {
+  	r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-		video_pal[i] = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3);
-	}
+    cpu_pal_rgb(r,g,b);
+  }
+  cpu_pal_end();
+	//for (int i=0 ; i<256 ; i++) {
+	//	r = gammatable[usegamma][*palette++];
+  //	g = gammatable[usegamma][*palette++];
+	//	b = gammatable[usegamma][*palette++];
+	//	video_pal[i] = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3);
+	//}
 }
 
 void
@@ -80,17 +88,29 @@ I_UpdateNoBlit(void)
 {
 }
 
-static inline send_screen_byte(unsigned int by)
+/*static inline send_screen_byte(unsigned int by)
 {
   *GPU = 0x00000000; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT;
   *GPU = 0x00000001; GPU_COM_WAIT; *GPU = (by<<24);   GPU_COM_WAIT;
 }
+*/
 
 I_FinishUpdate (void)
 {
 #ifndef NO_DISPLAY
   const int W = 320;
   const int H = 240;
+#if 0
+  cpu_frame_start();
+  const int *ptr = (int *)screens[0];
+  for (int i=0;i<320*200/4;i++) {
+    *GPU = *(ptr++);
+  }
+  for (int i=0;i<320*40/4;i++) {
+    *GPU = 0;
+  }
+  cpu_frame_end();
+#else
   /// painstakingly send frame to the gpu
   const unsigned char *ptr_col = screens[0];
   cpu_frame_start();
@@ -98,21 +118,18 @@ I_FinishUpdate (void)
     const unsigned char *ptr = (ptr_col++);
     int dupl = 0;
     for (int u=0;u<H;u++) {
-      uint16_t clr = video_pal[*ptr];
-      cpu_frame_pixel_565(clr);
-      //uint8_t  h   = clr>>8;
-      //uint8_t  l   = clr&255;
-      //send_screen_byte(h); // first byte
+      cpu_frame_pixel(*ptr);
       ++ dupl;          // increment source pointer
       if (dupl == 6) {
         dupl = 0;
       } else {
         ptr += W;
       }
-      //send_screen_byte(l); // second byte
     }
   }
   cpu_frame_end();
+#endif
+
 #else
   printf("----- frame done -----\n");
 #endif

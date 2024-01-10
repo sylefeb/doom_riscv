@@ -55,6 +55,7 @@ I_InitGraphics(void)
     fprintf(stderr,"ERROR: cannot initialize glfw.");
     exit(-1);
   }
+
   window = glfwCreateWindow(320,200,"DOOM", NULL, NULL);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
@@ -105,6 +106,12 @@ I_SetPalette(byte* palette)
 		r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
+
+    unsigned short rgb565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3);
+    r = (rgb565 & 31) << 3;
+    g = ((rgb565>>5)  & 63) << 2;
+    b = ((rgb565>>11) & 63) << 3;
+
 		video_pal[i] = r | (g << 8) | (b << 16);
 	}
 }

@@ -318,7 +318,7 @@ void D_Display (void)
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
-
+#if 0 // disable wipe
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -338,6 +338,7 @@ void D_Display (void)
         M_Drawer ();                            // menu is drawn even on top of wipes
         I_FinishUpdate ();                      // page flip or blit buffer
     } while (!done);
+#endif
 }
 
 
