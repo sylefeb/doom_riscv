@@ -47,7 +47,7 @@ I_InitGraphics(void)
   // initialize GPU
   gpu_init();
   // row major for fast sending
-  // screen_row_major(); // FIXME
+  screen_row_major();
 #endif
 
   // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
@@ -103,22 +103,24 @@ I_FinishUpdate (void)
   const int W = 320;
   const int H = 240;
 #if 1
-  // TODO line double every 6th (efficient row by row)
   cpu_frame_start();
-  const int *ptr = (int *)screens[0];
-  for (int i=0;i<320*200/4;i++) {
-    *GPU = *(ptr++);
-    GPU_COM_WAIT;
-    GPU_COM_WAIT;
-    GPU_COM_WAIT;
-    GPU_COM_WAIT; // TODO FIXME why so many??
-  }
-  for (int i=0;i<320*40/4;i++) {
-    *GPU = 0;
-    GPU_COM_WAIT;
-    GPU_COM_WAIT;
-    GPU_COM_WAIT;
-    GPU_COM_WAIT;
+  const int *row = (int*)screens[0];
+  int dupl = 0;
+  for (int j=0;j<H;j++) {
+    const int *ptr = row;
+    for (int i=0;i<W/4;i++) {
+      *GPU = *(ptr++);
+      GPU_COM_WAIT;
+      GPU_COM_WAIT;
+      GPU_COM_WAIT;
+      GPU_COM_WAIT; // TODO FIXME why so many??
+    }
+    ++ dupl;          // increment source pointer
+    if (dupl == 6) {
+      dupl = 0;
+    } else {
+      row += W/4;
+    }
   }
   cpu_frame_end();
 #else
