@@ -111,9 +111,6 @@ I_FinishUpdate (void)
     for (int i=0;i<W/4;i++) {
       *GPU = *(ptr++);
       GPU_COM_WAIT;
-      GPU_COM_WAIT;
-      GPU_COM_WAIT;
-      GPU_COM_WAIT; // TODO FIXME why so many??
     }
     ++ dupl;          // increment source pointer
     if (dupl == 6) {
