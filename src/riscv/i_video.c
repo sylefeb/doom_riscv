@@ -102,7 +102,7 @@ I_FinishUpdate (void)
 #ifndef NO_DISPLAY
   const int W = 320;
   const int H = 240;
-#if 1
+
   cpu_frame_start();
   const int *row = (int*)screens[0];
   int dupl = 0;
@@ -120,26 +120,6 @@ I_FinishUpdate (void)
     }
   }
   cpu_frame_end();
-#else
-  /// painstakingly send frame to the gpu
-  const unsigned char *ptr_col = screens[0];
-  cpu_frame_start();
-  for (int v=0;v<W;v++) {
-    const unsigned char *ptr = (ptr_col++);
-    int dupl = 0;
-    for (int u=0;u<H;u++) {
-      cpu_frame_pixel(*ptr);
-      ++ dupl;          // increment source pointer
-      if (dupl == 6) {
-        dupl = 0;
-      } else {
-        ptr += W;
-      }
-    }
-  }
-  cpu_frame_end();
-#endif
-
 #else
   printf("----- frame done -----\n");
 #endif
