@@ -20,7 +20,7 @@
 #include "config.h"
 #include "mini-printf.h"
 
-static volatile char * const UART = (void*)(PTR_UART_BASE);
+static volatile int * const UART = (void*)(PTR_UART_BASE);
 
 void
 console_init(void)
@@ -36,16 +36,29 @@ console_putchar(char c)
   for (int i=0;i<1024;i++) { asm volatile ("nop;"); }
 }
 
+int last_tag = 0;
+
 char
 console_getchar(void)
 {
-  return -1;
+  int tag, uart;
+  do {
+    uart = *UART;
+    tag  = (uart >> 8)&255;
+  } while (tag == last_tag);
+  last_tag = tag;
+  return uart & 255;
 }
 
 int
 console_getchar_nowait(void)
 {
-  return -1;
+  int tag, uart;
+  uart = *UART;
+  tag  = (uart >> 8)&255;
+  if (tag == last_tag) return -1;
+  last_tag = tag;
+  return uart & 255;
 }
 
 void

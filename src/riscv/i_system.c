@@ -109,6 +109,8 @@ I_GetRemoteEvent(void)
 		ch &= 0x7f;
 
 		if (ch < 28) {
+      console_putchar('key\n');
+      console_putchar('0' + ch);
 			/* Keyboard special */
 			event.type = msb ? ev_keydown : ev_keyup;
 			event.data1 = map[ch];
