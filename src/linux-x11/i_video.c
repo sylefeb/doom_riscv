@@ -1048,5 +1048,3 @@ Expand4
         xline += step;
     } while (y--);
 }
-
-

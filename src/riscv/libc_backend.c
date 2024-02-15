@@ -60,7 +60,7 @@ static struct {
 	size_t      len;	/* Length */
 	void *      addr;	/* Address in flash */
 } fs[] = {
-	{ "doomu.wad", 12408292, (void*)0x40200000 },
+	{ "doom1.wad", 4196020, (void*)0x00900000 },
 	{ NULL }
 };
 
@@ -116,7 +116,11 @@ _open(const char *pathname, int flags)
 	fds[fd].len    = fs[fn].len;
 	fds[fd].data   = fs[fn].addr;
 
-	console_printf("Opened: %s as fd=%d\n", pathname, fd);
+  console_printf("DATA AT %x|%d\n",fs[fn].addr,fs[fn].addr);
+  console_printf("LEN %d\n",fs[fn].len);
+  // console_printf("NAME %s\n",fs[fn].name);
+
+	// console_printf("Opened: %s as fd=%d\n", pathname, fd);
 
 	return fd;
 }

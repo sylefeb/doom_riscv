@@ -1,11 +1,14 @@
-CROSS ?= riscv-none-embed-
+CROSS ?= riscv64-unknown-elf-
 
 CC = $(CROSS)gcc
 OBJCOPY = $(CROSS)objcopy
+OBJDUMP = $(CROSS)objdump
 SIZE = $(CROSS)size
 ICEPROG = iceprog
 
-CFLAGS=-Wall -O2 -march=rv32im -mabi=ilp32 -ffreestanding -flto -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+# CFLAGS=-Wall -O2 -march=rv32i -mabi=ilp32 -ffreestanding -flto -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
+
+CFLAGS=-Wall -O3 -march=rv32im -mabi=ilp32 -ffreestanding -nostartfiles -fomit-frame-pointer -Wl,--gc-section --specs=nano.specs -I..
 
 CFLAGS += \
 	-DNORMALUNIX \
@@ -36,7 +39,7 @@ SOURCES_doom_arch := \
 	$(NULL)
 
 
-all: doom-riscv.bin
+all: doom-riscv.bin doom-riscv.s
 
 doom-riscv.elf: riscv.lds $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
 	$(CC) $(CFLAGS) -Wl,-Bstatic,-T,riscv.lds,--strip-debug -o $@ $(addprefix ../,$(SOURCES_doom)) $(SOURCES_doom_arch)
@@ -48,6 +51,9 @@ clean:
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
+
+%.s: %.elf
+	$(OBJDUMP) --disassemble $< > $@
 
 prog: doom-riscv.bin
 	$(ICEPROG) -o 1M $<

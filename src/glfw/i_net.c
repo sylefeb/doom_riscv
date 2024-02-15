@@ -1,7 +1,7 @@
 /*
- * i_main.c
+ * i_net.c
  *
- * Main entry point
+ * Dummy net code
  *
  * Copyright (C) 2021 Sylvain Munaut
  * All rights reserved.
@@ -17,13 +17,30 @@
  * GNU General Public License for more details.
  */
 
-#include "doomdef.h"
-#include "d_main.h"
-#include "console.h"
+#include <stdlib.h>
 
-int main(void)
+#include "doomstat.h"
+#include "d_net.h"
+#include "i_net.h"
+
+void
+I_InitNetwork (void)
 {
-  console_printf("ABCDEFGHIJKLMNOP___\n");
-	D_DoomMain();
-	return 0;
+	// Base init
+	doomcom = calloc(1, sizeof(*doomcom));
+	doomcom->ticdup = 1;
+
+	// Single player
+	netgame = false;
+
+	doomcom->id = DOOMCOM_ID;
+	doomcom->numplayers = doomcom->numnodes = 1;
+	doomcom->deathmatch = false;
+	doomcom->consoleplayer = 0;
+}
+
+void
+I_NetCmd (void)
+{
+	/* No network ... */
 }

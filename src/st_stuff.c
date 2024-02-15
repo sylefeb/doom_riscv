@@ -1322,6 +1322,7 @@ void ST_createWidgets(void)
                            ST_ARMSY+(i/3)*ST_ARMSYSPACE,
                            arms[i], (int *) &plyr->weaponowned[i+1],
                            &st_armson);
+        // printf("w_arms %d,%d\n",w_arms[i].x,w_arms[i].y);
     }
 
     // frags sum

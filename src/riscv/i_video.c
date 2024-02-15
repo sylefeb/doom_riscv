@@ -15,6 +15,9 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+
+ // SL: modified for the icestick doom
+
  */
 
 #include <stdint.h>
@@ -27,15 +30,32 @@
 #include "i_video.h"
 
 #include "config.h"
+#include <stdlib.h>
 
+// static uint16_t *video_pal = NULL;
+
+// #define SIMULATION
+// #define NO_DISPLAY
+
+#include "../../../libs/gpu.h"
 
 void
 I_InitGraphics(void)
 {
-	/* Don't need to do anything really ... */
+
+#ifndef NO_DISPLAY
+  // initialize screen
+  screen_init();
+  // row major for fast sending
+  screen_row_major();
+#endif
+
+  // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
+
+	/* Don't need to do anything else really ... */
 
 	/* Ok, maybe just set gamma default */
-	usegamma = 1;
+	usegamma = 0;
 }
 
 void
@@ -44,39 +64,68 @@ I_ShutdownGraphics(void)
 	/* Don't need to do anything really ... */
 }
 
-
 void
 I_SetPalette(byte* palette)
 {
-	static volatile uint32_t * const video_pal = (void*)(VID_PAL_BASE);
 	byte r, g, b;
 
-	for (int i=0 ; i<256 ; i++) {
-		r = gammatable[usegamma][*palette++];
+  gpu_pal_start();
+  for (int i=0 ; i<256 ; i++) {
+  	r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-		video_pal[i] = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
-	}
+    gpu_pal_rgb(r,g,b);
+  }
+  gpu_pal_end();
+	//for (int i=0 ; i<256 ; i++) {
+	//	r = gammatable[usegamma][*palette++];
+  //	g = gammatable[usegamma][*palette++];
+	//	b = gammatable[usegamma][*palette++];
+	//	video_pal[i] = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3);
+	//}
 }
-
 
 void
 I_UpdateNoBlit(void)
 {
 }
 
-void
+/*static inline send_screen_byte(unsigned int by)
+{
+  *GPU = 0x00000000; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT;
+  *GPU = 0x00000001; GPU_COM_WAIT; *GPU = (by<<24);   GPU_COM_WAIT;
+}
+*/
+
 I_FinishUpdate (void)
 {
-	/* Copy from RAM buffer to frame buffer */
-	memcpy(
-		(void*)VID_FB_BASE,
-		screens[0],
-		SCREENHEIGHT * SCREENWIDTH
-	);
+#ifndef NO_DISPLAY
+  const int W = 320;
+  const int H = 240;
+
+  gpu_frame_start();
+  const int *row = (int*)screens[0];
+  int dupl = 0;
+  for (int j=0;j<H;j++) {
+    const int *ptr = row;
+    for (int i=0;i<W/4;i++) {
+      *GPU = *(ptr++);
+      GPU_COM_WAIT;
+    }
+    ++ dupl;          // increment source pointer
+    if (dupl == 6) {
+      dupl = 0;
+    } else {
+      row += W/4;
+    }
+  }
+  gpu_frame_end();
+#else
+  printf("----- frame done -----\n");
+#endif
 
 	/* Very crude FPS measure (time to render 100 frames */
-#if 1
+#if 0
 	static int frame_cnt = 0;
 	static int tick_prev = 0;
 
@@ -88,6 +137,7 @@ I_FinishUpdate (void)
 		frame_cnt = 0;
 	}
 #endif
+
 }
 
 
@@ -95,23 +145,19 @@ void
 I_WaitVBL(int count)
 {
 	/* Buys-Wait for VBL status bit */
-	static volatile uint32_t * const video_state = (void*)(VID_CTRL_BASE);
-	while (!(video_state[0] & (1<<16)));
+  // SL: TODO
 }
 
 
 void
 I_ReadScreen(byte* scr)
 {
-	/* FIXME: Would have though reading from VID_FB_BASE be better ...
-	 *        but it seems buggy. Not sure if the problem is in the
-	 *        gateware
-	 */
-	memcpy(
-		scr,
-		screens[0],
-		SCREENHEIGHT * SCREENWIDTH
-	);
+  unsigned int *to = (unsigned int *)scr;
+  const unsigned int *from = screens[0];
+  for (int i=0;i<(SCREENHEIGHT * SCREENWIDTH)>>2;++i) {
+    *(to++) = *(from++);
+  }
+
 }
 
 

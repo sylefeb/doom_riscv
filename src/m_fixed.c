@@ -40,7 +40,6 @@ rcsid[] = "$Id: m_bbox.c,v 1.1 1997/02/03 22:45:10 b1 Exp $";
 
 
 // Fixme. __USE_C_FIXED__ or something.
-
 fixed_t
 FixedMul
 ( fixed_t       a,
@@ -54,7 +53,6 @@ FixedMul
 //
 // FixedDiv, C version.
 //
-
 fixed_t
 FixedDiv
 ( fixed_t       a,
@@ -64,7 +62,6 @@ FixedDiv
         return (a^b)<0 ? MININT : MAXINT;
     return FixedDiv2 (a,b);
 }
-
 
 
 fixed_t

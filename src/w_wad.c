@@ -38,6 +38,16 @@ rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 #define O_BINARY                0
 #endif
 
+#ifdef GLFW
+#include <ctype.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
+#include <malloc.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#endif
+
 #include "doomtype.h"
 #include "m_swap.h"
 #include "i_system.h"
@@ -47,7 +57,6 @@ rcsid[] = "$Id: w_wad.c,v 1.5 1997/02/03 16:47:57 b1 Exp $";
 #pragma implementation "w_wad.h"
 #endif
 #include "w_wad.h"
-
 
 
 
@@ -73,6 +82,7 @@ char* strupr (char* str)
     return str;
 }
 
+#ifndef GLFW
 int filelength (int handle)
 {
     struct stat fileinfo;
@@ -82,7 +92,7 @@ int filelength (int handle)
 
     return fileinfo.st_size;
 }
-
+#endif
 
 void
 ExtractFileBase
@@ -151,6 +161,8 @@ void W_AddFile (char *filename)
     filelump_t*         fileinfo;
     filelump_t          singleinfo;
     int                 storehandle;
+
+    fprintf(stderr,"W_AddFile\n");
 
     // open the file and add to directory
 
@@ -494,7 +506,7 @@ W_CacheLumpNum
     }
     else
     {
-        //printf ("cache hit on lump %i\n",lump);
+        // printf ("cache hit on lump %i\n",lump);
         Z_ChangeTag (lumpcache[lump],tag);
     }
 
@@ -575,5 +587,3 @@ void W_Profile (void)
     }
     fclose (f);
 }
-
-

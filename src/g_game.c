@@ -1580,8 +1580,9 @@ void G_DoPlayDemo (void)
     if ( *demo_p++ != VERSION)
     {
       fprintf( stderr, "Demo is from a different game version!\n");
-      gameaction = ga_nothing;
-      return;
+      // SL: let's be optimistic and play the demo nonetheless
+      //gameaction = ga_nothing;
+      //return;
     }
 
     skill = *demo_p++;
@@ -1676,6 +1677,3 @@ boolean G_CheckDemoStatus (void)
 
     return false;
 }
-
-
-

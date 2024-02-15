@@ -20,51 +20,54 @@
 #include "config.h"
 #include "mini-printf.h"
 
-
-struct wb_uart {
-	uint32_t data;
-	uint32_t clkdiv;
-} __attribute__((packed,aligned(4)));
-
-static volatile struct wb_uart * const uart_regs = (void*)(UART_BASE);
-
+static volatile int * const UART = (void*)(PTR_UART_BASE);
 
 void
 console_init(void)
 {
-	uart_regs->clkdiv = 23;	/* 1 Mbaud with clk=25MHz */
+
 }
 
-void
 console_putchar(char c)
 {
-	uart_regs->data = c;
+  (*UART) = c;
+  // Delay to let hardware UART send the byte before the next one.
+  // Very innefficient but printf should be limited to init/debug.
+  for (int i=0;i<1024;i++) { asm volatile ("nop;"); }
 }
+
+int last_tag = 0;
 
 char
 console_getchar(void)
 {
-	int32_t c;
-	do {
-		c = uart_regs->data;
-	} while (c & 0x80000000);
-	return c;
+  int tag, uart;
+  do {
+    uart = *UART;
+    tag  = (uart >> 8)&255;
+  } while (tag == last_tag);
+  last_tag = tag;
+  return uart & 255;
 }
 
 int
 console_getchar_nowait(void)
 {
-	int32_t c;
-	c = uart_regs->data;
-	return c & 0x80000000 ? -1 : (c & 0xff);
+  int tag, uart;
+  uart = *UART;
+  tag  = (uart >> 8)&255;
+  if (tag == last_tag) return -1;
+  last_tag = tag;
+  return uart & 255;
 }
 
 void
 console_puts(const char *p)
 {
 	char c;
-	while ((c = *(p++)) != 0x00)
-		uart_regs->data = c;
+	while ((c = *(p++)) != 0x00) {
+    console_putchar(c);
+  }
 }
 
 int
