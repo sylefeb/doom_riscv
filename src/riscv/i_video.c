@@ -44,8 +44,8 @@ I_InitGraphics(void)
 {
 
 #ifndef NO_DISPLAY
-  // initialize GPU
-  gpu_init();
+  // initialize screen
+  screen_init();
   // row major for fast sending
   screen_row_major();
 #endif
@@ -69,14 +69,14 @@ I_SetPalette(byte* palette)
 {
 	byte r, g, b;
 
-  cpu_pal_start();
+  gpu_pal_start();
   for (int i=0 ; i<256 ; i++) {
   	r = gammatable[usegamma][*palette++];
 		g = gammatable[usegamma][*palette++];
 		b = gammatable[usegamma][*palette++];
-    cpu_pal_rgb(r,g,b);
+    gpu_pal_rgb(r,g,b);
   }
-  cpu_pal_end();
+  gpu_pal_end();
 	//for (int i=0 ; i<256 ; i++) {
 	//	r = gammatable[usegamma][*palette++];
   //	g = gammatable[usegamma][*palette++];
@@ -103,7 +103,7 @@ I_FinishUpdate (void)
   const int W = 320;
   const int H = 240;
 
-  cpu_frame_start();
+  gpu_frame_start();
   const int *row = (int*)screens[0];
   int dupl = 0;
   for (int j=0;j<H;j++) {
@@ -119,7 +119,7 @@ I_FinishUpdate (void)
       row += W/4;
     }
   }
-  cpu_frame_end();
+  gpu_frame_end();
 #else
   printf("----- frame done -----\n");
 #endif
