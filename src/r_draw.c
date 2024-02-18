@@ -187,7 +187,7 @@ void R_DrawColumn (void)
 
     // Add span record for the GPU (TEST: move to a different R_DrawColumn and set colfunc)
     t_spanrecord *rec = R_AddSpanRecord(dc_x);
-    rec->type  = SPAN_WALL; // wall
+    rec->type  = /*dc_is_overlay ? SPAN_OVERLAY :*/ SPAN_WALL; // wall
     rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
     rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;

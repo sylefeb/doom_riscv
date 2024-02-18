@@ -62,14 +62,14 @@ typedef struct {
   short  yshift;
 } t_flatspan;
 
-#define SPAN_WALL 0
-#define SPAN_FLAT 1
-
+#define SPAN_WALL    0
+#define SPAN_FLAT    1
+#define SPAN_OVERLAY 2
 //
 // Span record
 //
 typedef struct s_spanrecord {
-  byte   type; // 0: wall, 1: flat
+  byte   type; // 0: wall, 1: flat, 2: front
   short  yl;
   short  yh;
   short  texid;

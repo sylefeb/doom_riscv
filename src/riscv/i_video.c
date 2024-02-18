@@ -164,7 +164,7 @@ I_FinishUpdate (void)
                   COLDRAW_WALL(cur->wall.vstep,cur->wall.vinit,cur->wall.u),
                   COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | WALL
               );
-          } else {
+          } else if (cur->type == SPAN_FLAT) {
               //printf("cur->flat.height %d,cur->flat.yshift %d,",cur->flat.height,cur->flat.yshift);
               //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
               gpu_col_send(

@@ -377,9 +377,10 @@ void R_DrawMaskedColumn (column_t* column)
                 dc_source = (byte *)column + 3;
                 dc_texturemid = basetexturemid - (column->topdelta<<FRACBITS);
                 // dc_source = (byte *)column + 3 - column->topdelta;
+#ifdef RISCV
                 // GPU: cancel the offset
                 dc_voffset = (column->topdelta<<(FRACBITS));
-
+#endif
                 // Drawn by either R_DrawColumn
                 //  or (SHADOW) R_DrawFuzzColumn.
                 colfunc ();
@@ -425,8 +426,9 @@ R_DrawVisSprite
     fixed_t             frac;
     patch_t*            patch;
 
-
-    // patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+#ifndef RISCV
+    patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+#endif
 
     dc_colormap = vis->colormap;
 
@@ -454,7 +456,7 @@ R_DrawVisSprite
 
         ////// for GPU
         dc_u     = texturecolumn;
-        dc_is_overlay = 0;
+        dc_is_overlay = 1;
         dc_texid = numtextures + numflats - 2 + vis->patch + 1;
         //                                ^^^
         // engine counts 2 additional flats due to F1_START/F1_END
@@ -464,11 +466,16 @@ R_DrawVisSprite
         //if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
         //    I_Error ("R_DrawSpriteRange: bad texturecolumn");
 #endif
-        //column = (column_t *) ((byte *)patch +
-        //                       LONG(patch->columnofs[texturecolumn]));
-        R_DrawMaskedColumn (NULL/*column*/);
+#ifndef RISCV
+        column = (column_t *) ((byte *)patch +
+                               LONG(patch->columnofs[texturecolumn]));
+        R_DrawMaskedColumn (column);
+#else
+        R_DrawMaskedColumn (NULL);
+#endif
     }
 
+    dc_is_overlay = 0;
     colfunc = basecolfunc;
 }
 
@@ -1019,6 +1026,3 @@ void R_DrawMasked (void)
     if (!viewangleoffset)
         R_DrawPlayerSprites ();
 }
-
-
-
