@@ -183,10 +183,10 @@ I_FinishUpdate (void)
           } else if (cur->type == SPAN_FLAT) {
               //printf("cur->flat.height %d,cur->flat.yshift %d,",cur->flat.height,cur->flat.yshift);
               //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-          //    gpu_col_send(
-          //        COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
-          //        COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
-          //    );
+              gpu_col_send(
+                  COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
+                  COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
+              );
           }
           cur = cur->next;
       }

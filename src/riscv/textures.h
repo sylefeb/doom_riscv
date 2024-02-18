@@ -71,6 +71,8 @@ t_texture_nfo all_textures[] = {{-1,-1},
   {64,128}, // STARTAN1
   {128,128}, // STARTAN2
   {128,128}, // STARTAN3
+  {-1,-1},
+  {-1,-1},
   {32,8}, // STEP3
   {32,16}, // STEP4
   {32,16}, // STEP5
@@ -176,6 +178,7 @@ t_texture_nfo all_textures[] = {{-1,-1},
   {64,64}, // NUKAGE1
   {64,64}, // NUKAGE2
   {64,64}, // NUKAGE3
+  {-1,-1},
   {114,83}, // CHGGA0
   {114,81}, // CHGGB0
   {86,46}, // CHGFA0

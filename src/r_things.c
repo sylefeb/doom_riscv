@@ -393,7 +393,7 @@ void R_DrawMaskedColumn (column_t* column)
 #ifdef RISCV
         topscreen = sprtopscreen;
         bottomscreen = topscreen + spryscale * all_textures[dc_texid].h;
-        printf("sprite %d height %d\n",dc_texid,all_textures[dc_texid].h);
+
         dc_yl = (topscreen+FRACUNIT-1)>>FRACBITS;
         dc_yh = (bottomscreen-1)>>FRACBITS;
 
