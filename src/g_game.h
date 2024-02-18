@@ -26,7 +26,7 @@
 
 #include "doomdef.h"
 #include "d_event.h"
-
+#include "doomtype.h"
 
 
 //

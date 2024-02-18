@@ -12,6 +12,7 @@ CFLAGS=-Wall -O3 -march=rv32im -mabi=ilp32 -ffreestanding -nostartfiles -fomit-f
 
 CFLAGS += \
 	-DNORMALUNIX \
+	-DRISCV \
 	$(NULL)
 
 

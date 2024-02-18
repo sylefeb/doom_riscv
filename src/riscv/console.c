@@ -28,6 +28,7 @@ console_init(void)
 
 }
 
+void
 console_putchar(char c)
 {
   (*UART) = c;

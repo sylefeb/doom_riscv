@@ -237,7 +237,9 @@ void R_GenerateComposite (int texnum)
     short*              collump;
     unsigned short*     colofs;
 
-I_Error("*********************************************** R_GenerateComposite %d\n\n",texnum);
+#ifdef RISCV
+    I_Error("R_GenerateComposite %d\n\n",texnum);
+#endif
 
     texture = textures[texnum];
 
@@ -548,9 +550,10 @@ void R_InitTextures (void)
                          texture->name);
             }
         }
-        //texturecolumnlump[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
-        //texturecolumnofs[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
-
+#ifndef RISCV
+        texturecolumnlump[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
+        texturecolumnofs[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
+#endif
         j = 1;
         while (j*2 <= texture->width)
             j<<=1;
@@ -568,8 +571,10 @@ void R_InitTextures (void)
         Z_Free (maptex2);
 
     // Precalculate whatever possible.
-    //for (i=0 ; i<numtextures ; i++)
-    //    R_GenerateLookup (i);
+#ifndef RISCV
+    for (i=0 ; i<numtextures ; i++)
+        R_GenerateLookup (i);
+#endif
 
     // Create translation table for global animation.
     texturetranslation = Z_Malloc ((numtextures+1)*4, PU_STATIC, 0);
@@ -578,7 +583,8 @@ void R_InitTextures (void)
         texturetranslation[i] = i;
 
     // output name <-> id
-    /*{
+#ifndef RISCV
+    {
         FILE *f;
         f = fopen("textures.nfo","w");
         fprintf(f,"%3d\n",numtextures);
@@ -589,8 +595,8 @@ void R_InitTextures (void)
             fprintf(f,"%3d %s\n",i,tmp);
         }
         fclose(f);
-    }*/
-
+    }
+#endif
 }
 
 
@@ -678,7 +684,7 @@ void R_InitColormaps (void)
 void R_InitData (void)
 {
     R_InitTextures ();
-    printf ("\nInitTextures");    
+    printf ("\nInitTextures");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitFlats ();
     printf ("\nInitFlats");

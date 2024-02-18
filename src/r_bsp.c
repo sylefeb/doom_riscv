@@ -512,7 +512,8 @@ void R_Subsector (int num)
     frontsector = sub->sector;
     count = sub->numlines;
     line = &segs[sub->firstline];
-/*
+
+#ifndef RISCV
     if (frontsector->floorheight < viewz)
     {
         floorplane = R_FindPlane (frontsector->floorheight,
@@ -531,7 +532,8 @@ void R_Subsector (int num)
     }
     else
         ceilingplane = NULL;
-*/
+#endif
+
     R_AddSprites (frontsector);
 
     while (count--)

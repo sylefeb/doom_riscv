@@ -729,7 +729,7 @@ void R_ExecuteSetViewSize (void)
         screenheightarray[i] = viewheight;
 
     // planes
-/*    
+#ifndef RISCV
     for (i=0 ; i<viewheight ; i++)
     {
         dy = ((i-viewheight/2)<<FRACBITS)+FRACUNIT/2;
@@ -742,7 +742,7 @@ void R_ExecuteSetViewSize (void)
         cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
         distscale[i] = FixedDiv (FRACUNIT,cosadj);
     }
-*/
+#endif
 
     // Calculate the light levels to use
     //  for each level / scale combination.
@@ -790,8 +790,10 @@ void R_Init (void)
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
 
     R_SetViewSize (screenblocks, detailLevel);
-    //R_InitPlanes ();
-    //printf ("\nR_InitPlanes");
+#ifndef RISCV
+    R_InitPlanes ();
+    printf ("\nR_InitPlanes");
+#endif
     R_InitLightTables ();
     printf ("\nR_InitLightTables");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
@@ -899,8 +901,9 @@ void R_RenderPlayerView (player_t* player)
 
     // Check for new console commands.
     NetUpdate ();
-
-    // R_DrawPlanes ();
+#ifndef RISCV
+    R_DrawPlanes ();
+#endif
 
     // Check for new console commands.
     NetUpdate ();

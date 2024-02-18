@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "doomdef.h"
+#include "d_event.h"
 
 // #include "i_system.h"
 // #include "v_video.h"
@@ -41,11 +42,61 @@ extern  int     usegamma;
 
 static uint32_t *video_pal = NULL;
 
-#include "../../../libs/gpu.h"
-
 static GLFWwindow* window = NULL;
 
 static GLuint texture = 0;
+
+int     glfw_num_events = 0;
+#define MAX_EVENTS 128
+event_t glfw_events[MAX_EVENTS];
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	const char map[] = {
+		KEY_LEFTARROW,  // 0
+		KEY_RIGHTARROW, // 1
+		KEY_DOWNARROW,  // 2
+		KEY_UPARROW,    // 3
+		KEY_RSHIFT,     // 4
+		KEY_RCTRL,      // 5
+		KEY_RALT,       // 6
+		KEY_ESCAPE,     // 7
+		KEY_ENTER,      // 8
+		KEY_TAB,        // 9
+		KEY_BACKSPACE,  // 10
+		KEY_PAUSE,      // 11
+		KEY_EQUALS,     // 12
+		KEY_MINUS,      // 13
+		KEY_F1,         // 14
+		KEY_F2,         // 15
+		KEY_F3,         // 16
+		KEY_F4,         // 17
+		KEY_F5,         // 18
+		KEY_F6,         // 19
+		KEY_F7,         // 20
+		KEY_F8,         // 21
+		KEY_F9,         // 22
+		KEY_F10,        // 23
+		KEY_F11,        // 24
+		KEY_F12,        // 25
+	};
+  if (glfw_num_events == MAX_EVENTS) {
+    return;
+  }
+  event_t *event = &glfw_events[glfw_num_events++];
+  event->type  = action == GLFW_PRESS ? ev_keydown : ev_keyup;
+  switch (key)
+  {
+    case GLFW_KEY_F1:     event->data1 = KEY_F1; break;
+    case GLFW_KEY_ENTER:  event->data1 = KEY_ENTER; break;
+    case GLFW_KEY_UP:     event->data1 = KEY_UPARROW; break;
+    case GLFW_KEY_DOWN:   event->data1 = KEY_DOWNARROW; break;
+    case GLFW_KEY_LEFT:   event->data1 = KEY_LEFTARROW; break;
+    case GLFW_KEY_RIGHT:  event->data1 = KEY_RIGHTARROW; break;
+    case GLFW_KEY_ESCAPE: event->data1 = KEY_ESCAPE; break;
+    default: event->data1 = key; break;
+  }
+}
 
 void
 I_InitGraphics(void)
@@ -59,6 +110,7 @@ I_InitGraphics(void)
   window = glfwCreateWindow(320,200,"DOOM", NULL, NULL);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
+  glfwSetKeyCallback(window, key_callback);
   // prepare texture
   glGenTextures(1,&texture);
   glBindTexture(GL_TEXTURE_2D,texture);
@@ -175,5 +227,8 @@ void I_StartFrame (void)
 void
 I_StartTic(void)
 {
-
+  for (int e = 0;e < glfw_num_events; ++e) {
+    D_PostEvent(&glfw_events[e]);
+  }
+  glfw_num_events = 0;
 }

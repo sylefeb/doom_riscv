@@ -105,7 +105,7 @@ int                     dc_is_overlay;
 int                     dccount;
 
 t_spanrecord          **dc_spanrecords;
-#define SPANRECORDS_POOL_SIZE 320*30 // ought to be enough
+#define SPANRECORDS_POOL_SIZE 320*50 // ought to be enough
 t_spanrecord           *dc_spanrecords_pool;
 int                     dc_next_free_spanrecord;
 
@@ -180,9 +180,6 @@ void R_DrawColumn (void)
         I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    // Framebuffer destination address.
-    dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
-
     // Determine scaling,
     //  which is the only mapping to be done.
     fracstep = dc_iscale;
@@ -199,7 +196,10 @@ void R_DrawColumn (void)
     rec->texid  = dc_texid;
     rec->light  = 15; // dc_light;
 
-    if (!dc_source) return; // texture removed
+    if (!dc_source) return; // texture removed (also skips on GPU renderer)
+
+    // Framebuffer destination address.
+    dest = screens[0] + (viewwindowy + dc_yl) * SCREENWIDTH + (viewwindowx + dc_x);
 
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-like scaling.
@@ -214,6 +214,7 @@ void R_DrawColumn (void)
         frac += fracstep;
 
     } while (count--);
+
 }
 
 
@@ -526,6 +527,12 @@ int                     dscount;
 // Draws the actual span.
 void R_DrawSpan (void)
 {
+#ifdef RISCV
+    // GPU: disabled ////////////////////////////////////
+    return;
+    // //////////////////////////////////////////////////
+#endif
+
     fixed_t             xfrac;
     fixed_t             yfrac;
     byte*               dest;

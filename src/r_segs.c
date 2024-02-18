@@ -182,10 +182,13 @@ R_RenderMaskedSegRange
             dc_is_overlay = 0;
 
             // draw the texture
-            //col = (column_t *)(
-            //    (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
-
-            R_DrawMaskedColumn (/*col*/NULL);
+#ifndef RISCV
+            col = (column_t *)(
+                (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+            R_DrawMaskedColumn (col);
+#else
+            R_DrawMaskedColumn (NULL);
+#endif
             maskedtexturecol[dc_x] = MAXSHORT;
         }
         spryscale += rw_scalestep;
@@ -239,9 +242,10 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-                //ceilingplane->top[rw_x] = top;
-                //ceilingplane->bottom[rw_x] = bottom;
-
+#ifndef RISCV
+                ceilingplane->top[rw_x] = top;
+                ceilingplane->bottom[rw_x] = bottom;
+#else
                 // add a flat span
                 if (1) {
                     t_spanrecord *rec = R_AddSpanRecord(rw_x);
@@ -253,6 +257,7 @@ void R_RenderSegLoop (void)
                     rec->texid = numtextures + frontsector->ceilingpic;
                     rec->light = 15; // dc_light;
                 }
+#endif
             }
         }
 
@@ -271,9 +276,10 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-                //floorplane->top[rw_x] = top;
-                //floorplane->bottom[rw_x] = bottom;
-
+#ifndef RISCV
+                floorplane->top[rw_x] = top;
+                floorplane->bottom[rw_x] = bottom;
+#else
                 // add a flat span
                 if (1) {
                     t_spanrecord *rec = R_AddSpanRecord(rw_x);
@@ -285,6 +291,7 @@ void R_RenderSegLoop (void)
                     rec->texid = numtextures + frontsector->floorpic;
                     rec->light = 15; // dc_light;
                 }
+#endif
             }
         }
 
@@ -317,7 +324,11 @@ void R_RenderSegLoop (void)
             dc_yh = yh;
             dc_texturemid = rw_midtexturemid;
             dc_texid = 1 + midtexture;
+#ifdef RISCV
             dc_source = NULL; //R_GetColumn(midtexture,texturecolumn);
+#else
+            dc_source = R_GetColumn(midtexture,texturecolumn);
+#endif
             colfunc ();
             ceilingclip[rw_x] = viewheight;
             floorclip[rw_x] = -1;
@@ -340,7 +351,11 @@ void R_RenderSegLoop (void)
                     dc_yh = mid;
                     dc_texturemid = rw_toptexturemid;
                     dc_texid = 1 + toptexture;
-                    dc_source = NULL; // R_GetColumn(toptexture,texturecolumn);
+#ifdef RISCV
+                    dc_source = NULL; //R_GetColumn(toptexture,texturecolumn);
+#else
+                    dc_source = R_GetColumn(toptexture,texturecolumn);
+#endif
                     colfunc ();
                     ceilingclip[rw_x] = mid;
                 }
@@ -371,7 +386,11 @@ void R_RenderSegLoop (void)
                     dc_yh = yh;
                     dc_texturemid = rw_bottomtexturemid;
                     dc_texid = 1 + bottomtexture;
+#ifdef RISCV
                     dc_source = NULL; //R_GetColumn(bottomtexture, texturecolumn);
+#else
+                    dc_source = R_GetColumn(bottomtexture, texturecolumn);
+#endif
                     colfunc ();
                     floorclip[rw_x] = mid;
                 }
@@ -460,8 +479,6 @@ R_StoreWallRange
         ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
         ds_p->scalestep = rw_scalestep =
             (ds_p->scale2 - rw_scale) / (stop-start);
-        // printf("%d = %d/%d\n",rw_scalestep,(ds_p->scale2 - rw_scale),(stop-start)); //////////////////////////////////////// required for div to not
-        ////////////////////////////////////////////////////  investigate!
     }
     else
     {
@@ -743,11 +760,13 @@ R_StoreWallRange
     }
 
     // render it
+#ifndef RISCV
     if (markceiling)
-        //ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
+        ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
 
     if (markfloor)
-        //floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
+        floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
+#endif
 
     R_RenderSegLoop ();
 

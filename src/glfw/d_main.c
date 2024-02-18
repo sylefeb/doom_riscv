@@ -533,7 +533,7 @@ void D_AddFile (char *file)
 //
 void IdentifyVersion (void)
 {
-    devparm = false;
+    devparm = true;
 
     // Manually select how to start
 #if 0
@@ -579,7 +579,7 @@ void D_DoomMain (void)
     nomonsters  = false;
     respawnparm = false;
     fastparm    = false;
-    devparm     = false;
+    devparm     = true;
     deathmatch  = 0;
 
     startskill   = sk_medium;

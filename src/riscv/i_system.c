@@ -38,6 +38,18 @@
 #include "console.h"
 #include "config.h"
 
+// -----------------
+extern volatile int* const RESET;
+extern volatile int* const GPU;
+#define GPU_COM_WAIT asm volatile("nop; nop; nop; nop; nop;")
+static inline void gpu_warmboot()
+{
+#ifndef EMUL
+  *GPU = 0x00000000; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT; // escape
+  *GPU = 0x00000080; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT;
+#endif
+}
+// -----------------
 
 void
 I_Init(void) { }
@@ -108,9 +120,13 @@ I_GetRemoteEvent(void)
 		boolean msb = ch & 0x80;
 		ch &= 0x7f;
 
+    if (ch == '*') {
+      // boom!
+      gpu_warmboot();
+      *RESET = 1;
+    }
+
 		if (ch < 28) {
-      console_putchar('key\n');
-      console_putchar('0' + ch);
 			/* Keyboard special */
 			event.type = msb ? ev_keydown : ev_keyup;
 			event.data1 = map[ch];

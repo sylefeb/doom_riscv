@@ -45,7 +45,7 @@ rcsid[] = "$Id: p_setup.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 #include "s_sound.h"
 
 #include "doomstat.h"
-
+#include "doomtype.h"
 
 void    P_SpawnMapThing (mapthing_t*    mthing);
 
@@ -686,9 +686,10 @@ P_SetupLevel
     //  UNUSED P_ConnectSubsectors ();
 
     // preload graphics
-    //if (precache)
-    //    R_PrecacheLevel ();
-
+#ifndef RISCV
+    if (precache)
+        R_PrecacheLevel ();
+#endif
     //printf ("free memory: 0x%x\n", Z_FreeMemory());
 
 }
