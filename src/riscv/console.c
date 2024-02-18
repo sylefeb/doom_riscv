@@ -75,12 +75,13 @@ int
 console_printf(const char *fmt, ...)
 {
 	static char _printf_buf[128];
-        va_list va;
-        int l;
 
-        va_start(va, fmt);
-        l = mini_vsnprintf(_printf_buf, 128, fmt, va);
-        va_end(va);
+  va_list va;
+  int l;
+
+  va_start(va, fmt);
+  l = mini_vsnprintf(_printf_buf, 128, fmt, va);
+  va_end(va);
 
 	console_puts(_printf_buf);
 

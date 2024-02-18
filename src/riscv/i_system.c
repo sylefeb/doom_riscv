@@ -123,6 +123,9 @@ I_GetRemoteEvent(void)
     if (ch == '*') {
       // boom!
       gpu_warmboot();
+      gpu_warmboot();
+      gpu_warmboot();
+      gpu_warmboot();
       *RESET = 1;
     }
 
