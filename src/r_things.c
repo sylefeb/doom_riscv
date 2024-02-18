@@ -41,7 +41,9 @@ rcsid[] = "$Id: r_things.c,v 1.5 1997/02/03 16:47:56 b1 Exp $";
 
 #include "doomstat.h"
 
-
+#ifdef RISCV
+#include "riscv/textures.h"
+#endif
 
 #define MINZ                            (FRACUNIT*4)
 #define BASEYCENTER                     100
@@ -388,8 +390,10 @@ void R_DrawMaskedColumn (column_t* column)
             column = (column_t *)(  (byte *)column + column->length + 4);
         }
     } else {
+#ifdef RISCV
         topscreen = sprtopscreen;
-        bottomscreen = topscreen + spryscale * 128 /*???*/;
+        bottomscreen = topscreen + spryscale * all_textures[dc_texid].h;
+        printf("sprite %d height %d\n",dc_texid,all_textures[dc_texid].h);
         dc_yl = (topscreen+FRACUNIT-1)>>FRACBITS;
         dc_yh = (bottomscreen-1)>>FRACBITS;
 
@@ -405,6 +409,7 @@ void R_DrawMaskedColumn (column_t* column)
             dc_voffset = 0;
             colfunc ();
         }
+#endif
     }
     dc_texturemid = basetexturemid;
 }

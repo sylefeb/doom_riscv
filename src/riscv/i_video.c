@@ -99,6 +99,10 @@ extern fixed_t  viewsin;
 extern fixed_t  viewx;
 extern fixed_t  viewy;
 
+unsigned int tm_frame_start = 0;
+unsigned int tm_tot_cycles  = 0;
+int tm_frame_count = 0;
+
 I_FinishUpdate (void)
 {
 #ifndef USE_GPU
@@ -125,6 +129,18 @@ I_FinishUpdate (void)
 #else
 
   gpu_sync_frame();
+
+  unsigned int now = cpu_time();
+  if (tm_frame_count > 0) {
+    tm_tot_cycles += now - tm_frame_start;
+  }
+  ++ tm_frame_count;
+  if (tm_frame_count == 64) {
+    printf("%d cycles/frame\n",tm_tot_cycles>>6);
+    tm_frame_count = 0;
+    tm_tot_cycles  = 0;
+  }
+  tm_frame_start   = now;
 
   for (int x=0;x<SCREENWIDTH;++x) {
 
@@ -167,10 +183,10 @@ I_FinishUpdate (void)
           } else if (cur->type == SPAN_FLAT) {
               //printf("cur->flat.height %d,cur->flat.yshift %d,",cur->flat.height,cur->flat.yshift);
               //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-              gpu_col_send(
-                  COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
-                  COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
-              );
+          //    gpu_col_send(
+          //        COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
+          //        COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
+          //    );
           }
           cur = cur->next;
       }
