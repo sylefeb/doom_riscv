@@ -37,6 +37,7 @@ SOURCES_doom_arch := \
 	console.c  \
 	libc_backend.c  \
 	mini-printf.c \
+	../../../config.c \
 	$(NULL)
 
 

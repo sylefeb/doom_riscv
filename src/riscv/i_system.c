@@ -38,18 +38,7 @@
 #include "console.h"
 #include "config.h"
 
-// -----------------
-extern volatile int* const RESET;
-extern volatile int* const GPU;
-#define GPU_COM_WAIT asm volatile("nop; nop; nop; nop; nop;")
-static inline void gpu_warmboot()
-{
-#ifndef EMUL
-  *GPU = 0x00000000; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT; // escape
-  *GPU = 0x00000080; GPU_COM_WAIT; *GPU = 0x00000000; GPU_COM_WAIT;
-#endif
-}
-// -----------------
+#include "../../libs/gpu.h"
 
 void
 I_Init(void) { }
@@ -122,11 +111,18 @@ I_GetRemoteEvent(void)
 
     if (ch == '*') {
       // boom!
+      printf("GPU reset\n");
       gpu_warmboot();
-      gpu_warmboot();
-      gpu_warmboot();
-      gpu_warmboot();
+      for (int i = 0; i < (1<<20) ; ++i) { asm volatile("nop;"); }
+      printf("CPU reset\n");
+      // flush the cache
+      volatile int *flush = (volatile int*)0; // sure
+      for (int i = 0; i < 65536*8 ; ++i) {
+        *LEDS = *(flush++);
+      }
+      *LEDS  = 1;
       *RESET = 1;
+      while (1) {}
     }
 
 		if (ch < 28) {
@@ -165,10 +161,14 @@ I_GetRemoteEvent(void)
 	}
 }
 
+extern fixed_t  viewcos;
+extern fixed_t  viewsin;
+extern fixed_t  viewx;
+extern fixed_t  viewy;
+
 void
 I_StartFrame(void)
 {
-	/* Nothing to do */
 }
 
 void

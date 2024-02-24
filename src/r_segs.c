@@ -36,6 +36,9 @@ rcsid[] = "$Id: r_segs.c,v 1.3 1997/01/29 20:10:19 b1 Exp $";
 #include "r_local.h"
 #include "r_sky.h"
 
+#ifdef RISCV
+#include "../../libs/gpu.h"
+#endif
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -210,6 +213,9 @@ R_RenderMaskedSegRange
 #define HEIGHTBITS              12
 #define HEIGHTUNIT              (1<<HEIGHTBITS)
 
+void R_DrawGPUSpan( int sx, t_spanrecord *rec );
+extern int current_col_x;
+
 void R_RenderSegLoop (void)
 {
     angle_t             angle;
@@ -225,6 +231,12 @@ void R_RenderSegLoop (void)
 
     for ( ; rw_x < rw_stopx ; rw_x++)
     {
+
+#ifdef RISCV
+        gpu_col_select(rw_x);
+        current_col_x = rw_x;
+#endif
+
         // mark floor / ceiling areas
         yl = (topfrac+HEIGHTUNIT-1)>>HEIGHTBITS;
 
@@ -248,7 +260,9 @@ void R_RenderSegLoop (void)
 #else
                 // add a flat span
                 if (1) {
-                    t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    // t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    t_spanrecord lrec;
+                    t_spanrecord *rec = &lrec;
                     rec->type  = SPAN_FLAT; // flat
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
@@ -256,6 +270,7 @@ void R_RenderSegLoop (void)
                     rec->flat.yshift = rec->yl - 240/2;
                     rec->texid = numtextures + frontsector->ceilingpic;
                     rec->light = 15; // dc_light;
+                    R_DrawGPUSpan(rw_x, rec);
                 }
 #endif
             }
@@ -282,7 +297,9 @@ void R_RenderSegLoop (void)
 #else
                 // add a flat span
                 if (1) {
-                    t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    // t_spanrecord *rec = R_AddSpanRecord(rw_x);
+                    t_spanrecord lrec;
+                    t_spanrecord *rec = &lrec;
                     rec->type  = SPAN_FLAT;
                     rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
@@ -290,6 +307,7 @@ void R_RenderSegLoop (void)
                     rec->flat.yshift = rec->yl - 240/2;
                     rec->texid = numtextures + frontsector->floorpic;
                     rec->light = 15; // dc_light;
+                    R_DrawGPUSpan(rw_x, rec);
                 }
 #endif
             }

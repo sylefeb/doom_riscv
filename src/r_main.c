@@ -877,6 +877,9 @@ void R_SetupFrame (player_t* player)
 }
 
 
+#if RISCV
+void I_GPUFrame_Start();
+#endif
 
 //
 // R_RenderView
@@ -886,6 +889,10 @@ void R_RenderPlayerView (player_t* player)
     R_ClearSpanRecords();
 
     R_SetupFrame (player);
+
+#if RISCV
+    I_GPUFrame_Start();
+#endif
 
     // Clear buffers.
     R_ClearClipSegs ();

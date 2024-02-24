@@ -103,6 +103,43 @@ unsigned int tm_frame_start = 0;
 unsigned int tm_tot_cycles  = 0;
 int tm_frame_count = 0;
 
+void I_GPUFrame_Start()
+{
+#if RISCV
+  gpu_sync_frame();
+
+  gpu_col_select(0);
+
+  // FIXME: why? needed only in hardware
+  gpu_col_send(
+    PARAMETER_UV_OFFSET(0),
+    PARAMETER_UV_OFFSET_EX(0) | PARAMETER
+  );
+
+  // send view params
+  gpu_col_send(
+      PARAMETER_UV_OFFSET(-viewy>>6),
+      PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
+  );
+
+  // produce plane parameters for all columns
+  for (int c = 0 ; c != 320 ; ++c) {
+    const int flat_scale = 3100; // might need small adjustments
+    int rz = flat_scale;
+    int cx = (c - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
+    int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
+    int dv = dot3( cx,0,rz,  viewcos>>4,0,-viewsin>>4 ) >> 14;
+    gpu_col_send(
+        PARAMETER_PLANE_A(256,0,0),
+        PARAMETER_PLANE_A_EX(du,dv) | PARAMETER
+    );
+    gpu_col_send(0, COLDRAW_INC);
+  }
+
+#endif
+}
+
+void
 I_FinishUpdate (void)
 {
 #ifndef USE_GPU
@@ -128,7 +165,8 @@ I_FinishUpdate (void)
   gpu_frame_end();
 #else
 
-  gpu_sync_frame();
+#if 1
+  // gpu_sync_frame();
 
   unsigned int now = cpu_time();
   if (tm_frame_count > 0) {
@@ -142,24 +180,24 @@ I_FinishUpdate (void)
   }
   tm_frame_start   = now;
 
+#if 0
+
   for (int x=0;x<SCREENWIDTH;++x) {
 
+#if 0
       if (x == 0) {
-
         // FIXME: why? needed only in hardware
         gpu_col_send(
           PARAMETER_UV_OFFSET(0),
           PARAMETER_UV_OFFSET_EX(0) | PARAMETER
         );
-
         // on first column, send view params
         gpu_col_send(
             PARAMETER_UV_OFFSET(-viewy>>6),
             PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
         );
-
       }
-
+#endif
       const int flat_scale = 3100; // might need small adjustments
       int rz = flat_scale;
       int cx = (x - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
@@ -170,7 +208,6 @@ I_FinishUpdate (void)
           PARAMETER_PLANE_A(256,0,0),
           PARAMETER_PLANE_A_EX(du,dv) | PARAMETER
       );
-#if 1
       t_spanrecord *cur = dc_spanrecords[x];
       while (cur) {
           if (cur->type == SPAN_WALL) { // wall
@@ -190,17 +227,15 @@ I_FinishUpdate (void)
           }
           cur = cur->next;
       }
-#endif
-      // filler (should not be necessary in the end, helps debug on partial renders)
-      //gpu_col_send(
-      //    COLDRAW_WALL(Y_MAX,0,0),
-      //    COLDRAW_COL(0, 0, 239, 15) | WALL
-      //);
       // column done
       gpu_col_send(0,COLDRAW_EOC);
   }
+#endif
 
   gpu_draw_frame();
+
+#endif
+
 
 #endif
 

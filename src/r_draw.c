@@ -42,6 +42,9 @@ rcsid[] = "$Id: r_draw.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 // State.
 #include "doomstat.h"
 
+#ifdef RISCV
+#include "../../libs/gpu.h"
+#endif
 
 // ?
 #define MAXWIDTH                        1120
@@ -153,6 +156,31 @@ t_spanrecord *R_AddSpanRecord(int col)
     return new;
 }
 
+#ifdef RISCV
+
+int current_col_x = -1;
+
+void R_DrawGPUSpan( int sx, t_spanrecord *rec )
+{
+    if (current_col_x != sx) {
+      gpu_col_select(sx);
+      current_col_x = sx;
+    }
+    if (rec->type == SPAN_WALL) { // wall
+        gpu_col_send(
+            COLDRAW_WALL(rec->wall.vstep,rec->wall.vinit,rec->wall.u),
+            COLDRAW_COL(rec->texid,rec->yl,rec->yh, rec->light) | WALL
+        );
+    } else if (rec->type == SPAN_FLAT) {
+        gpu_col_send(
+            COLDRAW_PLANE_B(rec->flat.height,rec->flat.yshift),
+            COLDRAW_COL(rec->texid,rec->yl,rec->yh,rec->light) | PLANE
+        );
+    }
+}
+
+#endif
+
 //
 // A column is a vertical slice/span from a wall texture that,
 //  given the DOOM style restrictions on the view orientation,
@@ -186,7 +214,9 @@ void R_DrawColumn (void)
     frac = dc_texturemid + (dc_yl-centery)*fracstep;
 
     // Add span record for the GPU (TEST: move to a different R_DrawColumn and set colfunc)
-    t_spanrecord *rec = R_AddSpanRecord(dc_x);
+    // t_spanrecord *rec = R_AddSpanRecord(dc_x);
+    t_spanrecord lrec;
+    t_spanrecord *rec = &lrec;
     rec->type  = /*dc_is_overlay ? SPAN_OVERLAY :*/ SPAN_WALL; // wall
     rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
@@ -195,6 +225,12 @@ void R_DrawColumn (void)
     rec->wall.u = dc_u;
     rec->texid  = dc_texid;
     rec->light  = 15; // dc_light;
+
+#ifdef RISCV
+
+    R_DrawGPUSpan(dc_x , rec);
+
+#endif
 
     if (!dc_source) return; // texture removed (also skips on GPU renderer)
 
@@ -214,6 +250,7 @@ void R_DrawColumn (void)
         frac += fracstep;
 
     } while (count--);
+
 
 }
 
