@@ -111,13 +111,14 @@ I_GetRemoteEvent(void)
 
     if (ch == '*') {
       // boom!
+      gpu_sync_frame();
       printf("GPU reset\n");
       gpu_warmboot();
       for (int i = 0; i < (1<<20) ; ++i) { asm volatile("nop;"); }
       printf("CPU reset\n");
       // flush the cache
       volatile int *flush = (volatile int*)0; // sure
-      for (int i = 0; i < 65536*8 ; ++i) {
+      for (int i = 0; i < 65536 ; ++i) {
         *LEDS = *(flush++);
       }
       *LEDS  = 1;

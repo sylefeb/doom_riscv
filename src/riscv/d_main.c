@@ -220,6 +220,7 @@ void D_Display (void)
         borderdrawcount = 3;
     }
 
+#ifndef FOO
     // save the current screen if about to wipe
     if (gamestate != wipegamestate)
     {
@@ -263,18 +264,26 @@ void D_Display (void)
 
     // draw buffered stuff to screen
     I_UpdateNoBlit ();
+#else
+    wipe = false;
+    redrawsbar = false;
+    fullscreen = true;
+#endif
 
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
         R_RenderPlayerView (&players[displayplayer]);
 
+#ifndef FOO
     if (gamestate == GS_LEVEL && gametic)
         HU_Drawer ();
+#endif
 
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
         I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
 
+#ifndef FOO
     // see if the border needs to be initially drawn
     if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
     {
@@ -294,12 +303,14 @@ void D_Display (void)
         }
 
     }
+#endif
 
     menuactivestate = menuactive;
     viewactivestate = viewactive;
     inhelpscreensstate = inhelpscreens;
     oldgamestate = wipegamestate = gamestate;
 
+#ifndef FOO
     // draw pause pic
     if (paused)
     {
@@ -323,6 +334,10 @@ void D_Display (void)
         I_FinishUpdate ();              // page flip or blit buffer
         return;
     }
+#else
+    NetUpdate ();         // send out any new accumulation
+#endif
+
 #if 0 // disable wipe
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
