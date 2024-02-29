@@ -220,7 +220,7 @@ void D_Display (void)
         borderdrawcount = 3;
     }
 
-#ifndef FOO
+#ifndef RISCV
     // save the current screen if about to wipe
     if (gamestate != wipegamestate)
     {
@@ -274,16 +274,16 @@ void D_Display (void)
     if (gamestate == GS_LEVEL && !automapactive && gametic)
         R_RenderPlayerView (&players[displayplayer]);
 
-#ifndef FOO
+#ifndef RISCV
     if (gamestate == GS_LEVEL && gametic)
         HU_Drawer ();
 #endif
 
+#ifndef RISCV
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
         I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
 
-#ifndef FOO
     // see if the border needs to be initially drawn
     if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
     {
@@ -310,7 +310,7 @@ void D_Display (void)
     inhelpscreensstate = inhelpscreens;
     oldgamestate = wipegamestate = gamestate;
 
-#ifndef FOO
+#ifndef RISCV
     // draw pause pic
     if (paused)
     {
@@ -335,7 +335,8 @@ void D_Display (void)
         return;
     }
 #else
-    NetUpdate ();         // send out any new accumulation
+    I_FinishUpdate ();              // page flip or blit buffer
+    return;
 #endif
 
 #if 0 // disable wipe
@@ -372,6 +373,8 @@ void D_DoomLoop (void)
     printf("I_InitGraphics ... ");
     I_InitGraphics ();
     printf("done.\n");
+
+    I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
 
     while (1)
     {
