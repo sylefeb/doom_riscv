@@ -99,14 +99,25 @@ extern fixed_t  viewsin;
 extern fixed_t  viewx;
 extern fixed_t  viewy;
 
-unsigned int tm_frame_start = 0;
-unsigned int tm_tot_cycles  = 0;
-int tm_frame_count = 0;
-
 void I_GPUFrame_Start()
 {
 #if RISCV
+
+  unsigned int before = cpu_time();
   gpu_sync_frame();
+  unsigned int after  = cpu_time();
+  // printf("%d wait cycles\n",after-before);
+
+  static unsigned int tm_tot_cycles  = 0;
+  static int          tm_frame_count = 0;
+
+  tm_tot_cycles += after - before;
+  ++ tm_frame_count;
+  if (tm_frame_count == 64) {
+    printf("%d wait cycles/frame\n",tm_tot_cycles>>6);
+    tm_frame_count = 0;
+    tm_tot_cycles  = 0;
+  }
 
   gpu_col_select(0);
 
@@ -142,6 +153,24 @@ void I_GPUFrame_Start()
 void
 I_FinishUpdate (void)
 {
+  /* Very crude FPS measure (time to render 100 frames */
+#if 0
+	static int frame_cnt = 0;
+	static int tick_prev = 0;
+
+	if (++frame_cnt == 100)
+	{
+		int tick_now = I_GetTime();
+		printf("%d\n", tick_now - tick_prev);
+		tick_prev = tick_now;
+		frame_cnt = 0;
+	}
+#endif
+}
+
+void
+I_GPUFrame_End()
+{
 #ifndef USE_GPU
   const int W = 320;
   const int H = 240;
@@ -166,7 +195,11 @@ I_FinishUpdate (void)
 #else
 
 #if 1
-  // gpu_sync_frame();
+
+  static unsigned int tm_frame_start = 0;
+  static unsigned int tm_tot_cycles  = 0;
+  static int tm_frame_count = 0;
+  static int tm_wait_count = 0;
 
   unsigned int now = cpu_time();
   if (tm_frame_count > 0) {
@@ -240,20 +273,6 @@ I_FinishUpdate (void)
 #endif
 
   // printf("----- frame done -----\n");
-
-	/* Very crude FPS measure (time to render 100 frames */
-#if 0
-	static int frame_cnt = 0;
-	static int tick_prev = 0;
-
-	if (++frame_cnt == 100)
-	{
-		int tick_now = I_GetTime();
-		printf("%d\n", tick_now - tick_prev);
-		tick_prev = tick_now;
-		frame_cnt = 0;
-	}
-#endif
 
 }
 

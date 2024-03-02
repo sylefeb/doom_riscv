@@ -877,8 +877,14 @@ void R_SetupFrame (player_t* player)
 }
 
 
-#if RISCV
+#ifdef RISCV
 void I_GPUFrame_Start();
+static inline unsigned int cpu_time()
+{
+   int cycles;
+   asm volatile ("rdcycle %0" : "=r"(cycles));
+   return cycles;
+}
 #endif
 
 //
@@ -890,32 +896,31 @@ void R_RenderPlayerView (player_t* player)
 
     R_SetupFrame (player);
 
-#if RISCV
-    I_GPUFrame_Start();
-#endif
-
     // Clear buffers.
     R_ClearClipSegs ();
     R_ClearDrawSegs ();
     R_ClearPlanes ();
     R_ClearSprites ();
 
-    // check for new console commands.
-    NetUpdate ();
-
-    // The head node is the last node output.
+   // The head node is the last node output.
+#if RISCV
+    // unsigned int tm_start = cpu_time();
+    I_GPUFrame_Start();
+#endif
     R_RenderBSPNode (numnodes-1);
 
-    // Check for new console commands.
-    NetUpdate ();
 #ifndef RISCV
     R_DrawPlanes ();
 #endif
 
-    // Check for new console commands.
-    NetUpdate ();
-
     R_DrawMasked ();
+
+#if RISCV
+    I_GPUFrame_End();
+
+    // unsigned int tm_stop = cpu_time();
+    // printf("%d cycles in renderer\n",tm_stop - tm_start);
+#endif
 
     // Check for new console commands.
     NetUpdate ();
