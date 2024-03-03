@@ -104,6 +104,8 @@ int                     dc_light_level;
 // when set, draws at depth 0
 int                     dc_is_overlay;
 
+extern int              scalelight_level[LIGHTLEVELS];
+
 // just for profiling
 int                     dccount;
 
@@ -159,13 +161,25 @@ t_spanrecord *R_AddSpanRecord(int col)
 #ifdef RISCV
 
 int current_col_x = -1;
+int current_overlay = 0;
 
 void R_DrawGPUSpan( int sx, t_spanrecord *rec )
 {
     if (current_col_x != sx) {
-      gpu_col_select(sx);
+      if (current_col_x + 1 == sx) {
+        gpu_col_send(0,COLDRAW_INC);
+      } else {
+        gpu_col_select(sx);
+      }
       current_col_x = sx;
     }
+
+    if (dc_is_overlay != current_overlay) {
+      if (dc_is_overlay) gpu_depth_test_disable();
+      else               gpu_depth_test_enable();
+      current_overlay = dc_is_overlay;
+    }
+
     if (rec->type == SPAN_WALL) { // wall
         gpu_col_send(
             COLDRAW_WALL(rec->wall.vstep,rec->wall.vinit,rec->wall.u),

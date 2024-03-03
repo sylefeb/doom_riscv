@@ -119,7 +119,7 @@ lighttable_t*           scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
 lighttable_t*           scalelightfixed[MAXLIGHTSCALE];
 lighttable_t*           zlight[LIGHTLEVELS][MAXLIGHTZ];
 
-// int                     scalelight_level[LIGHTLEVELS];
+int                     scalelight_level[LIGHTLEVELS];
 
 // bumped light from gun blasts
 int                     extralight;
@@ -763,7 +763,8 @@ void R_ExecuteSetViewSize (void)
 
             scalelight[i][j] = colormaps + level*256;
         }
-        // scalelight_level[i] = level;
+
+        scalelight_level[i] = 15 - (level>>1);
     }
 }
 

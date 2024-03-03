@@ -463,7 +463,6 @@ R_DrawVisSprite
 #ifdef RISCV
         ////// for GPU
         dc_u     = texturecolumn;
-        dc_is_overlay = 1;
         dc_texid = numtextures + numflats - 2 + vis->patch + 1;
         //                                ^^^
         // engine counts 2 additional flats due to F1_START/F1_END
@@ -483,7 +482,6 @@ R_DrawVisSprite
 #endif
     }
 
-    dc_is_overlay = 0;
     colfunc = basecolfunc;
 }
 

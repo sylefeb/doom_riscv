@@ -98,6 +98,7 @@ extern fixed_t  viewcos;
 extern fixed_t  viewsin;
 extern fixed_t  viewx;
 extern fixed_t  viewy;
+extern int current_overlay;
 
 void I_GPUFrame_Start()
 {
@@ -132,6 +133,7 @@ void I_GPUFrame_Start()
       PARAMETER_UV_OFFSET(-viewy>>6),
       PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
   );
+  current_overlay = 0;
 
   // produce plane parameters for all columns
   for (int c = 0 ; c != 320 ; ++c) {

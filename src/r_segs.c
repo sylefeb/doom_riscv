@@ -97,7 +97,6 @@ short*          maskedtexturecol;
 extern int      numtextures;
 extern int      ceiling_lightlevel;
 extern int      floor_lightlevel;
-// extern int      scalelight_level[LIGHTLEVELS];
 extern int      dc_light_level;
 
 //
@@ -220,6 +219,7 @@ R_RenderMaskedSegRange
 
 void R_DrawGPUSpan( int sx, t_spanrecord *rec );
 extern int current_col_x;
+// extern int scalelight_level[LIGHTLEVELS];
 
 void R_RenderSegLoop (void)
 {
@@ -238,7 +238,11 @@ void R_RenderSegLoop (void)
     {
 
 #ifdef RISCV
-        gpu_col_select(rw_x);
+        if (rw_x == current_col_x+1) {
+          gpu_col_send(0,COLDRAW_INC);
+        } else {
+          gpu_col_select(rw_x);
+        }
         current_col_x = rw_x;
 #endif
 
@@ -311,7 +315,7 @@ void R_RenderSegLoop (void)
                     rec->flat.height = - worldbottom >> 12;
                     rec->flat.yshift = rec->yl - 240/2;
                     rec->texid = numtextures + frontsector->floorpic;
-                    rec->light  = floor_lightlevel;
+                    rec->light = floor_lightlevel;
                     R_DrawGPUSpan(rw_x, rec);
                 }
 #endif
