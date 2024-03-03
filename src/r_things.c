@@ -99,6 +99,7 @@ char*           spritename;
 
 extern int      numtextures;
 extern int      numflats;
+extern int      dc_light_level;
 
 //
 // R_InstallSpriteLump
@@ -459,14 +460,16 @@ R_DrawVisSprite
     {
         texturecolumn = frac>>FRACBITS;
 
+#ifdef RISCV
         ////// for GPU
         dc_u     = texturecolumn;
         dc_is_overlay = 1;
         dc_texid = numtextures + numflats - 2 + vis->patch + 1;
         //                                ^^^
         // engine counts 2 additional flats due to F1_START/F1_END
+        dc_light_level = vis->light_level;
         //////
-
+#endif
 #ifdef RANGECHECK
         //if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
         //    I_Error ("R_DrawSpriteRange: bad texturecolumn");
@@ -621,16 +624,19 @@ void R_ProjectSprite (mobj_t* thing)
     {
         // shadow draw
         vis->colormap = NULL;
+        vis->light_level = 0;
     }
     else if (fixedcolormap)
     {
         // fixed map
         vis->colormap = fixedcolormap;
+        vis->light_level = 15;
     }
     else if (thing->frame & FF_FULLBRIGHT)
     {
         // full bright
         vis->colormap = colormaps;
+        vis->light_level = 15;
     }
 
     else
@@ -642,6 +648,7 @@ void R_ProjectSprite (mobj_t* thing)
             index = MAXLIGHTSCALE-1;
 
         vis->colormap = spritelights[index];
+        vis->light_level = dc_light_level;
     }
 }
 
@@ -669,12 +676,16 @@ void R_AddSprites (sector_t* sec)
 
     lightnum = (sec->lightlevel >> LIGHTSEGSHIFT)+extralight;
 
-    if (lightnum < 0)
+    if (lightnum < 0) {
         spritelights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
+        dc_light_level = 0;
+    } else if (lightnum >= LIGHTLEVELS) {
         spritelights = scalelight[LIGHTLEVELS-1];
-    else
+        dc_light_level = LIGHTLEVELS-1;
+    } else {
         spritelights = scalelight[lightnum];
+        dc_light_level = lightnum;
+    }
 
     // Handle all things in sector.
     for (thing = sec->thinglist ; thing ; thing = thing->snext)
@@ -760,21 +771,25 @@ void R_DrawPSprite (pspdef_t* psp)
     {
         // shadow draw
         vis->colormap = NULL;
+        vis->light_level = 0;
     }
     else if (fixedcolormap)
     {
         // fixed color
         vis->colormap = fixedcolormap;
+        vis->light_level = 15;
     }
     else if (psp->state->frame & FF_FULLBRIGHT)
     {
         // full bright
         vis->colormap = colormaps;
+        vis->light_level = 15;
     }
     else
     {
         // local light
         vis->colormap = spritelights[MAXLIGHTSCALE-1];
+        vis->light_level = dc_light_level;
     }
 
     // GPU indicate sprite is an overlay
@@ -801,12 +816,16 @@ void R_DrawPlayerSprites (void)
         (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
         +extralight;
 
-    if (lightnum < 0)
+    if (lightnum < 0) {
         spritelights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
+        dc_light_level = 0;
+    } else if (lightnum >= LIGHTLEVELS) {
         spritelights = scalelight[LIGHTLEVELS-1];
-    else
+        dc_light_level = LIGHTLEVELS-1;
+    } else {
         spritelights = scalelight[lightnum];
+        dc_light_level = lightnum;
+    }
 
     // clip to screen bounds
     mfloorclip = screenheightarray;

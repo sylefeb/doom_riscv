@@ -99,6 +99,8 @@ short                   dc_texid;
 int                     dc_u;
 // additional offset to v coordinate
 int                     dc_voffset;
+// light level
+int                     dc_light_level;
 // when set, draws at depth 0
 int                     dc_is_overlay;
 
@@ -222,8 +224,7 @@ void R_DrawColumn (void)
     rec->wall.vinit = ((frac + dc_voffset) >> 16);
     rec->wall.u = dc_u;
     rec->texid  = dc_texid;
-    int level   = ((dc_colormap - colormaps) >> 8);
-    rec->light  = 15 - (level>>1);
+    rec->light  = dc_light_level;
 
 #ifdef RISCV
 

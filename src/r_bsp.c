@@ -540,9 +540,7 @@ void R_Subsector (int num)
       int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
       if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
       if (light < 0)            { light = 0; }
-      lighttable_t* clrm = zlight[light][1+(VIEWHEIGHT>>LIGHTZSHIFT)];
-      int level          = ((clrm - colormaps) >> 8);
-      floor_lightlevel   = 15 - (level>>1);
+      floor_lightlevel   = light;
     }
     if (frontsector->ceilingheight > viewz
         || frontsector->ceilingpic == skyflatnum)
@@ -550,9 +548,7 @@ void R_Subsector (int num)
       int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
       if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
       if (light < 0)            { light = 0; }
-      lighttable_t* clrm = zlight[light][1+(VIEWHEIGHT>>LIGHTZSHIFT)];
-      int level          = ((clrm - colormaps) >> 8);
-      ceiling_lightlevel = 15 - (level>>1);
+      ceiling_lightlevel = light;
     }
 #endif
 

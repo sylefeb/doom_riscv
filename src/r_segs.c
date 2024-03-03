@@ -97,6 +97,8 @@ short*          maskedtexturecol;
 extern int      numtextures;
 extern int      ceiling_lightlevel;
 extern int      floor_lightlevel;
+// extern int      scalelight_level[LIGHTLEVELS];
+extern int      dc_light_level;
 
 //
 // R_RenderMaskedSegRange
@@ -129,11 +131,14 @@ R_RenderMaskedSegRange
         lightnum++;
 
     if (lightnum < 0) {
-        walllights = scalelight[0];
+        walllights  = scalelight[0];
+        dc_light_level = 0;
     } else if (lightnum >= LIGHTLEVELS) {
-        walllights = scalelight[LIGHTLEVELS-1];
+        walllights  = scalelight[LIGHTLEVELS-1];
+        dc_light_level = LIGHTLEVELS-1;
     } else {
-        walllights = scalelight[lightnum];
+        walllights  = scalelight[lightnum];
+        dc_light_level = lightnum;
     }
 
     maskedtexturecol = ds->maskedtexturecol;
@@ -169,13 +174,9 @@ R_RenderMaskedSegRange
         {
             if (!fixedcolormap)
             {
-#ifndef RISCV
                 index = spryscale>>LIGHTSCALESHIFT;
                 if (index >=  MAXLIGHTSCALE )
                     index = MAXLIGHTSCALE-1;
-#else
-                index = MAXLIGHTSCALE-1;
-#endif
                 dc_colormap = walllights[index];
             }
 
@@ -728,12 +729,16 @@ R_StoreWallRange
             else if (curline->v1->x == curline->v2->x)
                 lightnum++;
 
-            if (lightnum < 0)
+            if (lightnum < 0) {
                 walllights = scalelight[0];
-            else if (lightnum >= LIGHTLEVELS)
+                dc_light_level = 0;
+            } else if (lightnum >= LIGHTLEVELS) {
                 walllights = scalelight[LIGHTLEVELS-1];
-            else
+                dc_light_level = LIGHTLEVELS-1;
+            } else {
                 walllights = scalelight[lightnum];
+                dc_light_level = lightnum;
+            }
         }
     }
 
