@@ -879,6 +879,7 @@ void R_SetupFrame (player_t* player)
 
 #ifdef RISCV
 void I_GPUFrame_Start();
+void I_GPUFrame_End();
 static inline unsigned int cpu_time()
 {
    int cycles;

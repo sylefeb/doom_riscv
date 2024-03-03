@@ -95,7 +95,8 @@ lighttable_t**  walllights;
 short*          maskedtexturecol;
 
 extern int      numtextures;
-
+extern int      ceiling_lightlevel;
+extern int      floor_lightlevel;
 
 //
 // R_RenderMaskedSegRange
@@ -127,12 +128,13 @@ R_RenderMaskedSegRange
     else if (curline->v1->x == curline->v2->x)
         lightnum++;
 
-    if (lightnum < 0)
+    if (lightnum < 0) {
         walllights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
+    } else if (lightnum >= LIGHTLEVELS) {
         walllights = scalelight[LIGHTLEVELS-1];
-    else
+    } else {
         walllights = scalelight[lightnum];
+    }
 
     maskedtexturecol = ds->maskedtexturecol;
 
@@ -167,11 +169,13 @@ R_RenderMaskedSegRange
         {
             if (!fixedcolormap)
             {
+#ifndef RISCV
                 index = spryscale>>LIGHTSCALESHIFT;
-
                 if (index >=  MAXLIGHTSCALE )
                     index = MAXLIGHTSCALE-1;
-
+#else
+                index = MAXLIGHTSCALE-1;
+#endif
                 dc_colormap = walllights[index];
             }
 
@@ -268,8 +272,8 @@ void R_RenderSegLoop (void)
                     rec->yh    = (((bottom + 1) * 6) + 2) / 5;
                     rec->flat.height = worldtop >> 12;
                     rec->flat.yshift = rec->yl - 240/2;
-                    rec->texid = numtextures + frontsector->ceilingpic;
-                    rec->light = 15; // dc_light;
+                    rec->texid  = numtextures + frontsector->ceilingpic;
+                    rec->light  = ceiling_lightlevel;
                     R_DrawGPUSpan(rw_x, rec);
                 }
 #endif
@@ -306,7 +310,7 @@ void R_RenderSegLoop (void)
                     rec->flat.height = - worldbottom >> 12;
                     rec->flat.yshift = rec->yl - 240/2;
                     rec->texid = numtextures + frontsector->floorpic;
-                    rec->light = 15; // dc_light;
+                    rec->light  = floor_lightlevel;
                     R_DrawGPUSpan(rw_x, rec);
                 }
 #endif
@@ -324,11 +328,14 @@ void R_RenderSegLoop (void)
             dc_voffset = 0;
             dc_is_overlay = 0;
             // calculate lighting
+#ifndef RISCV
             index = rw_scale>>LIGHTSCALESHIFT;
-
             if (index >=  MAXLIGHTSCALE )
                 index = MAXLIGHTSCALE-1;
-            dc_light = index;
+#else
+            index = MAXLIGHTSCALE-1; // no distance attenuation (done on GPU)
+#endif
+
             dc_colormap = walllights[index];
             dc_x = rw_x;
             dc_iscale = 0xffffffffu / (unsigned)rw_scale;

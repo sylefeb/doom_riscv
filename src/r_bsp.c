@@ -40,7 +40,7 @@ rcsid[] = "$Id: r_bsp.c,v 1.4 1997/02/03 22:45:12 b1 Exp $";
 #include "doomstat.h"
 #include "r_state.h"
 
-//#include "r_local.h"
+#include "p_local.h"
 
 
 
@@ -53,6 +53,8 @@ sector_t*       backsector;
 drawseg_t       drawsegs[MAXDRAWSEGS];
 drawseg_t*      ds_p;
 
+extern int      ceiling_lightlevel;
+extern int      floor_lightlevel;
 
 void
 R_StoreWallRange
@@ -532,6 +534,26 @@ void R_Subsector (int num)
     }
     else
         ceilingplane = NULL;
+#else
+    if (frontsector->floorheight < viewz)
+    {
+      int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
+      if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
+      if (light < 0)            { light = 0; }
+      lighttable_t* clrm = zlight[light][1+(VIEWHEIGHT>>LIGHTZSHIFT)];
+      int level          = ((clrm - colormaps) >> 8);
+      floor_lightlevel   = 15 - (level>>1);
+    }
+    if (frontsector->ceilingheight > viewz
+        || frontsector->ceilingpic == skyflatnum)
+    {
+      int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
+      if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
+      if (light < 0)            { light = 0; }
+      lighttable_t* clrm = zlight[light][1+(VIEWHEIGHT>>LIGHTZSHIFT)];
+      int level          = ((clrm - colormaps) >> 8);
+      ceiling_lightlevel = 15 - (level>>1);
+    }
 #endif
 
     R_AddSprites (frontsector);

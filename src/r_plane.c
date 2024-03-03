@@ -56,6 +56,11 @@ visplane_t*             lastvisplane;
 visplane_t*             floorplane;
 visplane_t*             ceilingplane;
 
+#else
+
+int ceiling_lightlevel;
+int floor_lightlevel;
+
 #endif
 
 // ?

@@ -97,8 +97,6 @@ byte*                   dc_source;
 short                   dc_texid;
 // texture column coordinate being drawn
 int                     dc_u;
-// lighting level of column being drawn
-byte                    dc_light;
 // additional offset to v coordinate
 int                     dc_voffset;
 // when set, draws at depth 0
@@ -169,7 +167,7 @@ void R_DrawGPUSpan( int sx, t_spanrecord *rec )
     if (rec->type == SPAN_WALL) { // wall
         gpu_col_send(
             COLDRAW_WALL(rec->wall.vstep,rec->wall.vinit,rec->wall.u),
-            COLDRAW_COL(rec->texid,rec->yl,rec->yh, rec->light) | WALL
+            COLDRAW_COL(rec->texid,rec->yl,rec->yh,rec->light) | WALL
         );
     } else if (rec->type == SPAN_FLAT) {
         gpu_col_send(
@@ -217,14 +215,15 @@ void R_DrawColumn (void)
     // t_spanrecord *rec = R_AddSpanRecord(dc_x);
     t_spanrecord lrec;
     t_spanrecord *rec = &lrec;
-    rec->type  = /*dc_is_overlay ? SPAN_OVERLAY :*/ SPAN_WALL; // wall
+    rec->type  = SPAN_WALL; // wall
     rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
     rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
     rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
     rec->wall.vinit = ((frac + dc_voffset) >> 16);
     rec->wall.u = dc_u;
     rec->texid  = dc_texid;
-    rec->light  = 15; // dc_light;
+    int level   = ((dc_colormap - colormaps) >> 8);
+    rec->light  = 15 - (level>>1);
 
 #ifdef RISCV
 
