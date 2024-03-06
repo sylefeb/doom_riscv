@@ -393,7 +393,7 @@ static int      keyboxes[3];
 // a random number per tick
 static int      st_randomnumber;
 
-
+extern int      gpu_enabled;
 
 // Massive bunches of cheat shit
 //  to keep it from being easy to figure them out.
@@ -411,6 +411,11 @@ unsigned char   cheat_choppers_seq[] =
 unsigned char   cheat_god_seq[] =
 {
     0xb2, 0x26, 0x26, 0xaa, 0x26, 0xff  // iddqd
+};
+
+unsigned char   cheat_gpu_seq[] =
+{
+    0xb2, 0x26, 0xe6, 0x2a, 0xae, 0xff  // idgpu
 };
 
 unsigned char   cheat_ammo_seq[] =
@@ -467,6 +472,7 @@ unsigned char   cheat_mypos_seq[] =
 // Now what?
 cheatseq_t      cheat_mus = { cheat_mus_seq, 0 };
 cheatseq_t      cheat_god = { cheat_god_seq, 0 };
+cheatseq_t      cheat_gpu = { cheat_gpu_seq, 0 };
 cheatseq_t      cheat_ammo = { cheat_ammo_seq, 0 };
 cheatseq_t      cheat_ammonokey = { cheat_ammonokey_seq, 0 };
 cheatseq_t      cheat_noclip = { cheat_noclip_seq, 0 };
@@ -490,6 +496,10 @@ cheatseq_t      cheat_mypos = { cheat_mypos_seq, 0 };
 
 //
 extern char*    mapnames[];
+
+#ifdef RISCV
+  void I_GPUEnable_Changed();
+#endif
 
 
 //
@@ -560,6 +570,19 @@ ST_Responder (event_t* ev)
         }
         else
           plyr->message = STSTR_DQDOFF;
+      }
+      // 'gpu' cheat for toggleable GPU mode
+      else if (cht_CheckCheat(&cheat_gpu, ev->data1))
+      {
+        gpu_enabled = 1 - gpu_enabled;
+        if (gpu_enabled) {
+          plyr->message = STSTR_GPUON;
+        } else {
+          plyr->message = STSTR_GPUOFF;
+        }
+#ifdef RISCV
+        I_GPUEnable_Changed();
+#endif
       }
       // 'fa' cheat for killer fucking arsenal
       else if (cht_CheckCheat(&cheat_ammonokey, ev->data1))

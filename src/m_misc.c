@@ -509,14 +509,6 @@ WritePCXfile
 // M_ScreenShot
 //
 
-static void
-cmd_out(FILE *f, unsigned int dc0, unsigned int dc1)
-{
-    fprintf(f,"0,");
-    fprintf(f,"0x%02x,0x%02x,0x%02x,0x%02x,",  (dc0>>24)&255,(dc0>>16)&255,(dc0>>8)&255,(dc0)&255);
-    fprintf(f,"0x%02x,0x%02x,0x%02x,0x%02x,\n",(dc1>>24)&255,(dc1>>16)&255,(dc1>>8)&255,(dc1)&255);
-}
-
 void M_ScreenShot (void)
 {
 #if 0
@@ -546,60 +538,6 @@ void M_ScreenShot (void)
     WritePCXfile (lbmname, linear,
                   SCREENWIDTH, SCREENHEIGHT,
                   W_CacheLumpName ("PLAYPAL",PU_CACHE));
-#else
-    ////// TEST
-    {
-        FILE *f = fopen("frame.nfo","w");
-        if (!f) {
-            I_Error("Could not open output draw command file\n");
-        }
-        cmd_out(f,
-            PARAMETER_UV_OFFSET(-viewx>>16,-viewy>>16),
-            PARAMETER
-        );
-        for (int x=0;x<SCREENWIDTH;++x) {
-            const int flat_scale = 3100; // might need small adjustments
-            int rz = flat_scale;
-            int cx = (x - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
-            int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
-            int dv = dot3( cx,0,rz,  viewcos>>4,0,-viewsin>>4 ) >> 14;
-            printf("Column %3d, vc %d, vs %d, du %d, dv %d\n",x,viewcos,viewsin,du,dv);
-            cmd_out(f,
-                PARAMETER_PLANE_A(256,0,0),
-                PARAMETER_PLANE_DTA(du,dv) | PARAMETER
-            );
-            // filler (should not be necessary in the end, helps debug on partial renders)
-            cmd_out(f,
-                COLDRAW_WALL(MAX_DEPTH,0,0),
-                COLDRAW_COL(0, 0, 239, 15) | WALL
-            );
-            t_spanrecord *cur = dc_spanrecords[x];
-            while (cur) {
-                if (cur->type == SPAN_WALL) { // wall
-                    //printf("cur->vstep %d,cur->vinit %d,cur->u %d,",cur->wall.vstep,cur->wall.vinit,cur->wall.u);
-                    //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-                    cmd_out(f,
-                        COLDRAW_WALL(cur->wall.vstep,cur->wall.vinit,cur->wall.u),
-                        COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | WALL
-                    );
-                } else {
-                    printf("cur->flat.height %d,cur->flat.yshift %d,",cur->flat.height,cur->flat.yshift);
-                    printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-                    cmd_out(f,
-                        COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
-                        COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
-                    );
-                }
-                cur = cur->next;
-            }
-            // column done
-            cmd_out(f,
-                0,
-                COLDRAW_EOC
-            );
-        }
-        fclose(f);
-    }
 #endif
 
     players[consoleplayer].message = "screen shot";

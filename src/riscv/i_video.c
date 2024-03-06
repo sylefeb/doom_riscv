@@ -32,14 +32,25 @@
 #include "config.h"
 #include <stdlib.h>
 
-// static uint16_t *video_pal = NULL;
-
 // #define SIMULATION
 
 #include "../../../libs/gpu.h"
 #include "r_draw.h"
 
-#define USE_GPU
+extern int gpu_enabled;
+
+void
+I_GPUEnable_Changed()
+{
+  if (gpu_enabled) {
+    screen_col_major();
+  } else {
+    // wait for current frame to finish
+    gpu_sync_frame();
+    // row major for fast frame sending from CPU
+    screen_row_major();
+  }
+}
 
 void
 I_InitGraphics(void)
@@ -47,10 +58,14 @@ I_InitGraphics(void)
 
   // initialize screen
   screen_init();
-#ifndef USE_GPU
-  // row major for fast sending
-  screen_row_major();
-#endif
+
+  if (gpu_enabled) {
+    screen_col_major();
+  } else {
+    // row major for fast frame sending from CPU
+    screen_row_major();
+  }
+
   // clear text buffer
   gpu_txt_start();
   for (int i = 0; i<TEXT_BUFFER_LEN ; ++i) {
@@ -58,8 +73,6 @@ I_InitGraphics(void)
     GPU_COM_WAIT;
   }
   gpu_txt_end();
-
-  // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
 	/* Don't need to do anything else really ... */
 
@@ -77,16 +90,18 @@ void
 I_SetPalette(byte* palette)
 {
 	byte r, g, b;
-/*
-  gpu_pal_start();
-  for (int i=0 ; i<256 ; i++) {
-  	r = gammatable[usegamma][*palette++];
-		g = gammatable[usegamma][*palette++];
-		b = gammatable[usegamma][*palette++];
-    gpu_pal_rgb(r,g,b);
+
+  if (!gpu_enabled) {
+    gpu_pal_start();
+    for (int i=0 ; i<256 ; i++) {
+      r = gammatable[usegamma][*palette++];
+      g = gammatable[usegamma][*palette++];
+      b = gammatable[usegamma][*palette++];
+      gpu_pal_rgb(r,g,b);
+    }
+    gpu_pal_end();
   }
-  gpu_pal_end();
-*/
+
 }
 
 void
@@ -102,59 +117,83 @@ extern int current_overlay;
 
 void I_GPUFrame_Start()
 {
-#if RISCV
+  if (gpu_enabled) {
 
-  unsigned int before = cpu_time();
-  gpu_sync_frame();
-  unsigned int after  = cpu_time();
-  // printf("%d wait cycles\n",after-before);
+    unsigned int before = cpu_time();
+    gpu_sync_frame();
+    unsigned int after  = cpu_time();
+    // printf("%d wait cycles\n",after-before);
 
-  static unsigned int tm_tot_cycles  = 0;
-  static int          tm_frame_count = 0;
+    static unsigned int tm_tot_cycles  = 0;
+    static int          tm_frame_count = 0;
 
-  tm_tot_cycles += after - before;
-  ++ tm_frame_count;
-  if (tm_frame_count == 64) {
-    printf("%d wait cycles/frame\n",tm_tot_cycles>>6);
-    tm_frame_count = 0;
-    tm_tot_cycles  = 0;
-  }
+    tm_tot_cycles += after - before;
+    ++ tm_frame_count;
+    if (tm_frame_count == 64) {
+      printf("%d wait cycles/frame\n",tm_tot_cycles>>6);
+      tm_frame_count = 0;
+      tm_tot_cycles  = 0;
+    }
 
-  gpu_col_select(0);
+    gpu_col_select(0);
 
-  // FIXME: why? needed only in hardware
-  gpu_col_send(
-    PARAMETER_UV_OFFSET(0),
-    PARAMETER_UV_OFFSET_EX(0) | PARAMETER
-  );
-
-  // send view params
-  gpu_col_send(
-      PARAMETER_UV_OFFSET(-viewy>>6),
-      PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
-  );
-  current_overlay = 0;
-
-  // produce plane parameters for all columns
-  for (int c = 0 ; c != 320 ; ++c) {
-    const int flat_scale = 3100; // might need small adjustments
-    int rz = flat_scale;
-    int cx = (c - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
-    int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
-    int dv = dot3( cx,0,rz,  viewcos>>4,0,-viewsin>>4 ) >> 14;
+    // FIXME: why? needed only in hardware
     gpu_col_send(
-        PARAMETER_PLANE_A(256,0,0),
-        PARAMETER_PLANE_A_EX(du,dv) | PARAMETER
+      PARAMETER_UV_OFFSET(0),
+      PARAMETER_UV_OFFSET_EX(0) | PARAMETER
     );
-    gpu_col_send(0, COLDRAW_INC);
-  }
 
-#endif
+    // send view params
+    gpu_col_send(
+        PARAMETER_UV_OFFSET(-viewy>>6),
+        PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
+    );
+    current_overlay = 0;
+
+    // produce plane parameters for all columns
+    for (int c = 0 ; c != 320 ; ++c) {
+      const int flat_scale = 3100; // might need small adjustments
+      int rz = flat_scale;
+      int cx = (c - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
+      int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
+      int dv = dot3( cx,0,rz,  viewcos>>4,0,-viewsin>>4 ) >> 14;
+      gpu_col_send(
+          PARAMETER_PLANE_A(256,0,0),
+          PARAMETER_PLANE_A_EX(du,dv) | PARAMETER
+      );
+      gpu_col_send(0, COLDRAW_INC);
+    }
+  }
 }
 
 void
 I_FinishUpdate (void)
 {
+  if (!gpu_enabled) {
+
+    const int W = 320;
+    const int H = 240;
+
+    gpu_frame_start();
+    const int *row = (int*)screens[0];
+    int dupl = 0;
+    for (int j=0;j<H;j++) {
+      const int *ptr = row;
+      for (int i=0;i<W/4;i++) {
+        *GPU = *(ptr++);
+        GPU_COM_WAIT;
+      }
+      ++ dupl;          // increment source pointer
+      if (dupl == 6) {
+        dupl = 0;
+      } else {
+        row += W/4;
+      }
+    }
+    gpu_frame_end();
+
+  }
+
   /* Very crude FPS measure (time to render 100 frames */
 #if 0
 	static int frame_cnt = 0;
@@ -173,35 +212,13 @@ I_FinishUpdate (void)
 void
 I_GPUFrame_End()
 {
-#ifndef USE_GPU
-  const int W = 320;
-  const int H = 240;
-
-  gpu_frame_start();
-  const int *row = (int*)screens[0];
-  int dupl = 0;
-  for (int j=0;j<H;j++) {
-    const int *ptr = row;
-    for (int i=0;i<W/4;i++) {
-      *GPU = *(ptr++);
-      GPU_COM_WAIT;
-    }
-    ++ dupl;          // increment source pointer
-    if (dupl == 6) {
-      dupl = 0;
-    } else {
-      row += W/4;
-    }
+  if (!gpu_enabled) {
+    return;
   }
-  gpu_frame_end();
-#else
-
-#if 1
 
   static unsigned int tm_frame_start = 0;
   static unsigned int tm_tot_cycles  = 0;
   static int tm_frame_count = 0;
-  static int tm_wait_count = 0;
 
   unsigned int now = cpu_time();
   if (tm_frame_count > 0) {
@@ -215,66 +232,7 @@ I_GPUFrame_End()
   }
   tm_frame_start   = now;
 
-#if 0
-
-  for (int x=0;x<SCREENWIDTH;++x) {
-
-#if 0
-      if (x == 0) {
-        // FIXME: why? needed only in hardware
-        gpu_col_send(
-          PARAMETER_UV_OFFSET(0),
-          PARAMETER_UV_OFFSET_EX(0) | PARAMETER
-        );
-        // on first column, send view params
-        gpu_col_send(
-            PARAMETER_UV_OFFSET(-viewy>>6),
-            PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
-        );
-      }
-#endif
-      const int flat_scale = 3100; // might need small adjustments
-      int rz = flat_scale;
-      int cx = (x - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
-      int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
-      int dv = dot3( cx,0,rz,  viewcos>>4,0,-viewsin>>4 ) >> 14;
-      //printf("Column %3d, vc %d, vs %d, du %d, dv %d\n",x,viewcos,viewsin,du,dv);
-      gpu_col_send(
-          PARAMETER_PLANE_A(256,0,0),
-          PARAMETER_PLANE_A_EX(du,dv) | PARAMETER
-      );
-      t_spanrecord *cur = dc_spanrecords[x];
-      while (cur) {
-          if (cur->type == SPAN_WALL) { // wall
-              //printf("cur->vstep %d,cur->vinit %d,cur->u %d,",cur->wall.vstep,cur->wall.vinit,cur->wall.u);
-              //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-              gpu_col_send(
-                  COLDRAW_WALL(cur->wall.vstep,cur->wall.vinit,cur->wall.u),
-                  COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | WALL
-              );
-          } else if (cur->type == SPAN_FLAT) {
-              //printf("cur->flat.height %d,cur->flat.yshift %d,",cur->flat.height,cur->flat.yshift);
-              //printf("cur->texid %d,cur->yl %d,cur->yh %d,cur->light %d\n",cur->texid,cur->yl,cur->yh, cur->light);
-              gpu_col_send(
-                  COLDRAW_PLANE_B(cur->flat.height,cur->flat.yshift),
-                  COLDRAW_COL(cur->texid,cur->yl,cur->yh, cur->light) | PLANE
-              );
-          }
-          cur = cur->next;
-      }
-      // column done
-      gpu_col_send(0,COLDRAW_EOC);
-  }
-#endif
-
   gpu_draw_frame();
-
-#endif
-
-
-#endif
-
-  // printf("----- frame done -----\n");
 
 }
 

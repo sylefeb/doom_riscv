@@ -340,7 +340,10 @@
 #define STSTR_MUS               "Music Change"
 #define STSTR_NOMUS             "IMPOSSIBLE SELECTION"
 #define STSTR_DQDON             "Degreelessness Mode On"
-#define STSTR_DQDOFF    "Degreelessness Mode Off"
+#define STSTR_DQDOFF            "Degreelessness Mode Off"
+
+#define STSTR_GPUON             "GPU On"
+#define STSTR_GPUOFF            "Wait? You're giving up on a GPU!??!"
 
 #define STSTR_KFAADDED  "Very Happy Ammo Added"
 #define STSTR_FAADDED   "Ammo (no keys) Added"

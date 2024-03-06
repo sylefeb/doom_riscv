@@ -40,8 +40,6 @@ rcsid[] = "$Id: r_plane.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 #include "r_local.h"
 #include "r_sky.h"
 
-#ifndef RISCV
-
 planefunction_t         floorfunc;
 planefunction_t         ceilingfunc;
 
@@ -56,12 +54,8 @@ visplane_t*             lastvisplane;
 visplane_t*             floorplane;
 visplane_t*             ceilingplane;
 
-#else
-
 int ceiling_lightlevel;
 int floor_lightlevel;
-
-#endif
 
 // ?
 #define MAXOPENINGS     SCREENWIDTH*64
@@ -76,7 +70,6 @@ short*                  lastopening;
 short                   floorclip[SCREENWIDTH];
 short                   ceilingclip[SCREENWIDTH];
 
-#ifndef RISCV
 //
 // spanstart holds the start of a plane span
 // initialized to 0 at start
@@ -184,7 +177,6 @@ R_MapPlane
     // high or low detail
     spanfunc ();
 }
-#endif
 
 //
 // R_ClearPlanes
@@ -202,12 +194,9 @@ void R_ClearPlanes (void)
         ceilingclip[i] = -1;
     }
 
-#ifndef RISCV
     lastvisplane = visplanes;
-#endif
     lastopening = openings;
 
-#ifndef RISCV
     // texture calculation
     memset (cachedheight, 0, sizeof(cachedheight));
 
@@ -217,12 +206,9 @@ void R_ClearPlanes (void)
     // scale will be unit scale at SCREENWIDTH/2 distance
     basexscale = FixedDiv (finecosine[angle],centerxfrac);
     baseyscale = -FixedDiv (finesine[angle],centerxfrac);
-#endif
 
 }
 
-
-#ifndef RISCV
 
 //
 // R_FindPlane
@@ -464,5 +450,3 @@ void R_DrawPlanes (void)
         Z_ChangeTag (ds_source, PU_CACHE);
     }
 }
-
-#endif

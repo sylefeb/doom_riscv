@@ -124,7 +124,7 @@ boolean         autostart;
 
 boolean         advancedemo;
 
-
+extern int      gpu_enabled;
 
 
 char            wadfile[1024];          // primary wad file
@@ -220,126 +220,125 @@ void D_Display (void)
         borderdrawcount = 3;
     }
 
-#ifndef RISCV
-    // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
-    {
-        wipe = true;
-        wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+    if (!gpu_enabled) {
+      // save the current screen if about to wipe
+      if (gamestate != wipegamestate)
+      {
+          wipe = true;
+          wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+      }
+      else
+          wipe = false;
+
+      if (gamestate == GS_LEVEL && gametic)
+          HU_Erase();
+
+      // do buffered drawing
+      switch (gamestate)
+      {
+        case GS_LEVEL:
+          if (!gametic)
+              break;
+          if (automapactive)
+              AM_Drawer ();
+          if (wipe || (viewheight != 200 && fullscreen) )
+              redrawsbar = true;
+          if (inhelpscreensstate && !inhelpscreens)
+              redrawsbar = true;              // just put away the help screen
+          ST_Drawer (viewheight == 200, redrawsbar );
+          fullscreen = viewheight == 200;
+          break;
+
+        case GS_INTERMISSION:
+          WI_Drawer ();
+          break;
+
+        case GS_FINALE:
+          F_Drawer ();
+          break;
+
+        case GS_DEMOSCREEN:
+          D_PageDrawer ();
+          break;
+      }
+
+      // draw buffered stuff to screen
+      I_UpdateNoBlit ();
+    } else {
+      wipe       = false;
+      redrawsbar = false;
+      fullscreen = true;
     }
-    else
-        wipe = false;
-
-    if (gamestate == GS_LEVEL && gametic)
-        HU_Erase();
-
-    // do buffered drawing
-    switch (gamestate)
-    {
-      case GS_LEVEL:
-        if (!gametic)
-            break;
-        if (automapactive)
-            AM_Drawer ();
-        if (wipe || (viewheight != 200 && fullscreen) )
-            redrawsbar = true;
-        if (inhelpscreensstate && !inhelpscreens)
-            redrawsbar = true;              // just put away the help screen
-        ST_Drawer (viewheight == 200, redrawsbar );
-        fullscreen = viewheight == 200;
-        break;
-
-      case GS_INTERMISSION:
-        WI_Drawer ();
-        break;
-
-      case GS_FINALE:
-        F_Drawer ();
-        break;
-
-      case GS_DEMOSCREEN:
-        D_PageDrawer ();
-        break;
-    }
-
-    // draw buffered stuff to screen
-    I_UpdateNoBlit ();
-#else
-    wipe = false;
-    redrawsbar = false;
-    fullscreen = true;
-#endif
 
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
         R_RenderPlayerView (&players[displayplayer]);
 
-#ifndef RISCV
-    if (gamestate == GS_LEVEL && gametic)
+    if (!gpu_enabled) {
+      if (gamestate == GS_LEVEL && gametic)
         HU_Drawer ();
-#endif
-
-#ifndef RISCV
-    // clean up border stuff
-    if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-        I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
-
-    // see if the border needs to be initially drawn
-    if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
-    {
-        viewactivestate = false;        // view was not active
-        R_FillBackScreen ();    // draw the pattern into the back screen
     }
 
-    // see if the border needs to be updated to the screen
-    if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != 320)
-    {
-        if (menuactive || menuactivestate || !viewactivestate)
-            borderdrawcount = 3;
-        if (borderdrawcount)
-        {
-            R_DrawViewBorder ();    // erase old menu stuff
-            borderdrawcount--;
-        }
+    if (!gpu_enabled) {
+      // clean up border stuff
+      if (gamestate != oldgamestate && gamestate != GS_LEVEL)
+          I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
 
+      // see if the border needs to be initially drawn
+      if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
+      {
+          viewactivestate = false;        // view was not active
+          R_FillBackScreen ();    // draw the pattern into the back screen
+      }
+
+      // see if the border needs to be updated to the screen
+      if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != 320)
+      {
+          if (menuactive || menuactivestate || !viewactivestate)
+              borderdrawcount = 3;
+          if (borderdrawcount)
+          {
+              R_DrawViewBorder ();    // erase old menu stuff
+              borderdrawcount--;
+          }
+
+      }
     }
-#endif
 
     menuactivestate = menuactive;
     viewactivestate = viewactive;
     inhelpscreensstate = inhelpscreens;
     oldgamestate = wipegamestate = gamestate;
 
-#ifndef RISCV
-    // draw pause pic
-    if (paused)
-    {
-        if (automapactive)
-            y = 4;
-        else
-            y = viewwindowy+4;
-        V_DrawPatchDirect(viewwindowx+(scaledviewwidth-68)/2,
-                          y,0,W_CacheLumpName ("M_PAUSE", PU_CACHE));
+    if (!gpu_enabled) {
+      // draw pause pic
+      if (paused)
+      {
+          if (automapactive)
+              y = 4;
+          else
+              y = viewwindowy+4;
+          V_DrawPatchDirect(viewwindowx+(scaledviewwidth-68)/2,
+                            y,0,W_CacheLumpName ("M_PAUSE", PU_CACHE));
+      }
+
+
+      // menus go directly to the screen
+      M_Drawer ();          // menu is drawn even on top of everything
+      NetUpdate ();         // send out any new accumulation
+
+
+      // normal update
+      if (!wipe)
+      {
+          I_FinishUpdate ();              // page flip or blit buffer
+          return;
+      }
+    } else {
+      I_FinishUpdate ();              // page flip or blit buffer
+      return;
     }
 
-
-    // menus go directly to the screen
-    M_Drawer ();          // menu is drawn even on top of everything
-    NetUpdate ();         // send out any new accumulation
-
-
-    // normal update
-    if (!wipe)
-    {
-        I_FinishUpdate ();              // page flip or blit buffer
-        return;
-    }
-#else
-    I_FinishUpdate ();              // page flip or blit buffer
-    return;
-#endif
-
-#if 0 // disable wipe
     // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -359,7 +358,7 @@ void D_Display (void)
         M_Drawer ();                            // menu is drawn even on top of wipes
         I_FinishUpdate ();                      // page flip or blit buffer
     } while (!done);
-#endif
+
 }
 
 

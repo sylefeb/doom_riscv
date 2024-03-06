@@ -80,13 +80,6 @@ typedef struct s_spanrecord {
   struct s_spanrecord *next;
 } t_spanrecord;
 
-extern t_spanrecord **dc_spanrecords;
-
-// Span records for the GPU
-void          R_ClearSpanRecords(void);
-void          R_InitSpanRecords(void);
-t_spanrecord *R_AddSpanRecord(int col);
-
 // The span blitting interface.
 // Hook in assembler or system specific BLT
 //  here.

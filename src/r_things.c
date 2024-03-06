@@ -100,6 +100,7 @@ char*           spritename;
 extern int      numtextures;
 extern int      numflats;
 extern int      dc_light_level;
+extern int      gpu_enabled;
 
 //
 // R_InstallSpriteLump
@@ -380,10 +381,12 @@ void R_DrawMaskedColumn (column_t* column)
                 dc_source = (byte *)column + 3;
                 dc_texturemid = basetexturemid - (column->topdelta<<FRACBITS);
                 // dc_source = (byte *)column + 3 - column->topdelta;
-#ifdef RISCV
-                // GPU: cancel the offset
-                dc_voffset = (column->topdelta<<(FRACBITS));
-#endif
+
+                if (gpu_enabled) {
+                  // GPU: cancel the offset
+                  dc_voffset = (column->topdelta<<(FRACBITS));
+                }
+
                 // Drawn by either R_DrawColumn
                 //  or (SHADOW) R_DrawFuzzColumn.
                 colfunc ();
@@ -392,6 +395,7 @@ void R_DrawMaskedColumn (column_t* column)
         }
     } else {
 #ifdef RISCV
+        // gpu_enabled
         topscreen = sprtopscreen;
         bottomscreen = topscreen + spryscale * all_textures[dc_texid].h;
 
@@ -432,9 +436,9 @@ R_DrawVisSprite
     fixed_t             frac;
     patch_t*            patch;
 
-#ifndef RISCV
-    patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
-#endif
+    if (!gpu_enabled) {
+      patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+    }
 
     dc_colormap = vis->colormap;
 
@@ -460,26 +464,26 @@ R_DrawVisSprite
     {
         texturecolumn = frac>>FRACBITS;
 
-#ifdef RISCV
-        ////// for GPU
-        dc_u     = texturecolumn;
-        dc_texid = numtextures + numflats - 2 + vis->patch + 1;
-        //                                ^^^
-        // engine counts 2 additional flats due to F1_START/F1_END
-        dc_light_level = vis->light_level;
-        //////
-#endif
+        if (gpu_enabled) {
+          dc_u     = texturecolumn;
+          dc_texid = numtextures + numflats - 2 + vis->patch + 1;
+          //                                ^^^
+          // engine counts 2 additional flats due to F1_START/F1_END
+          dc_light_level = vis->light_level;
+        }
+
 #ifdef RANGECHECK
         //if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
         //    I_Error ("R_DrawSpriteRange: bad texturecolumn");
 #endif
-#ifndef RISCV
-        column = (column_t *) ((byte *)patch +
-                               LONG(patch->columnofs[texturecolumn]));
-        R_DrawMaskedColumn (column);
-#else
-        R_DrawMaskedColumn (NULL);
-#endif
+
+        if (!gpu_enabled) {
+          column = (column_t *) ((byte *)patch +
+                                LONG(patch->columnofs[texturecolumn]));
+          R_DrawMaskedColumn (column);
+        } else {
+          R_DrawMaskedColumn (NULL);
+        }
     }
 
     colfunc = basecolfunc;

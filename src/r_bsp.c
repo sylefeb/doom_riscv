@@ -55,6 +55,7 @@ drawseg_t*      ds_p;
 
 extern int      ceiling_lightlevel;
 extern int      floor_lightlevel;
+extern int      gpu_enabled;
 
 void
 R_StoreWallRange
@@ -515,42 +516,43 @@ void R_Subsector (int num)
     count = sub->numlines;
     line = &segs[sub->firstline];
 
-#ifndef RISCV
-    if (frontsector->floorheight < viewz)
-    {
-        floorplane = R_FindPlane (frontsector->floorheight,
-                                  frontsector->floorpic,
-                                  frontsector->lightlevel);
-    }
-    else
-        floorplane = NULL;
-
-    if (frontsector->ceilingheight > viewz
-        || frontsector->ceilingpic == skyflatnum)
-    {
-        ceilingplane = R_FindPlane (frontsector->ceilingheight,
-                                    frontsector->ceilingpic,
+    if (!gpu_enabled) {
+      if (frontsector->floorheight < viewz)
+      {
+          floorplane = R_FindPlane (frontsector->floorheight,
+                                    frontsector->floorpic,
                                     frontsector->lightlevel);
+      }
+      else
+          floorplane = NULL;
+
+      if (frontsector->ceilingheight > viewz
+          || frontsector->ceilingpic == skyflatnum)
+      {
+          ceilingplane = R_FindPlane (frontsector->ceilingheight,
+                                      frontsector->ceilingpic,
+                                      frontsector->lightlevel);
+      }
+      else
+          ceilingplane = NULL;
+
+    } else {
+      if (frontsector->floorheight < viewz)
+      {
+        int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
+        if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
+        if (light < 0)            { light = 0; }
+        floor_lightlevel   = light;
+      }
+      if (frontsector->ceilingheight > viewz
+          || frontsector->ceilingpic == skyflatnum)
+      {
+        int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
+        if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
+        if (light < 0)            { light = 0; }
+        ceiling_lightlevel = light;
+      }
     }
-    else
-        ceilingplane = NULL;
-#else
-    if (frontsector->floorheight < viewz)
-    {
-      int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
-      if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
-      if (light < 0)            { light = 0; }
-      floor_lightlevel   = light;
-    }
-    if (frontsector->ceilingheight > viewz
-        || frontsector->ceilingpic == skyflatnum)
-    {
-      int light    = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
-      if (light >= LIGHTLEVELS) { light = LIGHTLEVELS-1; }
-      if (light < 0)            { light = 0; }
-      ceiling_lightlevel = light;
-    }
-#endif
 
     R_AddSprites (frontsector);
 

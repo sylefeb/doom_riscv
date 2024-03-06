@@ -98,6 +98,7 @@ extern int      numtextures;
 extern int      ceiling_lightlevel;
 extern int      floor_lightlevel;
 extern int      dc_light_level;
+extern int      gpu_enabled;
 
 //
 // R_RenderMaskedSegRange
@@ -189,13 +190,13 @@ R_RenderMaskedSegRange
             dc_is_overlay = 0;
 
             // draw the texture
-#ifndef RISCV
-            col = (column_t *)(
-                (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
-            R_DrawMaskedColumn (col);
-#else
-            R_DrawMaskedColumn (NULL);
-#endif
+            if (!gpu_enabled) {
+              col = (column_t *)(
+                  (byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+              R_DrawMaskedColumn (col);
+            } else {
+              R_DrawMaskedColumn (NULL);
+            }
             maskedtexturecol[dc_x] = MAXSHORT;
         }
         spryscale += rw_scalestep;
@@ -219,7 +220,6 @@ R_RenderMaskedSegRange
 
 void R_DrawGPUSpan( int sx, t_spanrecord *rec );
 extern int current_col_x;
-// extern int scalelight_level[LIGHTLEVELS];
 
 void R_RenderSegLoop (void)
 {
@@ -236,16 +236,16 @@ void R_RenderSegLoop (void)
 
     for ( ; rw_x < rw_stopx ; rw_x++)
     {
-
 #ifdef RISCV
-        if (rw_x == current_col_x+1) {
-          gpu_col_send(0,COLDRAW_INC);
-        } else {
-          gpu_col_select(rw_x);
+        if (gpu_enabled) {
+          if (rw_x == current_col_x+1) {
+            gpu_col_send(0,COLDRAW_INC);
+          } else {
+            gpu_col_select(rw_x);
+          }
+          current_col_x = rw_x;
         }
-        current_col_x = rw_x;
 #endif
-
         // mark floor / ceiling areas
         yl = (topfrac+HEIGHTUNIT-1)>>HEIGHTBITS;
 
@@ -263,25 +263,24 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-#ifndef RISCV
+              if (!gpu_enabled) {
                 ceilingplane->top[rw_x] = top;
                 ceilingplane->bottom[rw_x] = bottom;
-#else
+              } else {
+#ifdef RISCV
                 // add a flat span
-                if (1) {
-                    // t_spanrecord *rec = R_AddSpanRecord(rw_x);
-                    t_spanrecord lrec;
-                    t_spanrecord *rec = &lrec;
-                    rec->type  = SPAN_FLAT; // flat
-                    rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
-                    rec->yh    = (((bottom + 1) * 6) + 2) / 5;
-                    rec->flat.height = worldtop >> 12;
-                    rec->flat.yshift = rec->yl - 240/2;
-                    rec->texid  = numtextures + frontsector->ceilingpic;
-                    rec->light  = ceiling_lightlevel;
-                    R_DrawGPUSpan(rw_x, rec);
-                }
+                t_spanrecord lrec;
+                t_spanrecord *rec = &lrec;
+                rec->type  = SPAN_FLAT; // flat
+                rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
+                rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                rec->flat.height = worldtop >> 12;
+                rec->flat.yshift = rec->yl - 240/2;
+                rec->texid  = numtextures + frontsector->ceilingpic;
+                rec->light  = ceiling_lightlevel;
+                R_DrawGPUSpan(rw_x, rec);
 #endif
+              }
             }
         }
 
@@ -300,25 +299,23 @@ void R_RenderSegLoop (void)
 
             if (top <= bottom)
             {
-#ifndef RISCV
+              if (!gpu_enabled) {
                 floorplane->top[rw_x] = top;
                 floorplane->bottom[rw_x] = bottom;
-#else
-                // add a flat span
-                if (1) {
-                    // t_spanrecord *rec = R_AddSpanRecord(rw_x);
-                    t_spanrecord lrec;
-                    t_spanrecord *rec = &lrec;
-                    rec->type  = SPAN_FLAT;
-                    rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
-                    rec->yh    = (((bottom + 1) * 6) + 2) / 5;
-                    rec->flat.height = - worldbottom >> 12;
-                    rec->flat.yshift = rec->yl - 240/2;
-                    rec->texid = numtextures + frontsector->floorpic;
-                    rec->light = floor_lightlevel;
-                    R_DrawGPUSpan(rw_x, rec);
-                }
+              } else {
+#ifdef RISCV
+                t_spanrecord lrec;
+                t_spanrecord *rec = &lrec;
+                rec->type  = SPAN_FLAT;
+                rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
+                rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                rec->flat.height = - worldbottom >> 12;
+                rec->flat.yshift = rec->yl - 240/2;
+                rec->texid = numtextures + frontsector->floorpic;
+                rec->light = floor_lightlevel;
+                R_DrawGPUSpan(rw_x, rec);
 #endif
+              }
             }
         }
 
@@ -333,14 +330,13 @@ void R_RenderSegLoop (void)
             dc_voffset = 0;
             dc_is_overlay = 0;
             // calculate lighting
-#ifndef RISCV
-            index = rw_scale>>LIGHTSCALESHIFT;
-            if (index >=  MAXLIGHTSCALE )
-                index = MAXLIGHTSCALE-1;
-#else
-            index = MAXLIGHTSCALE-1; // no distance attenuation (done on GPU)
-#endif
-
+            if (!gpu_enabled) {
+              index = rw_scale>>LIGHTSCALESHIFT;
+              if (index >=  MAXLIGHTSCALE )
+                  index = MAXLIGHTSCALE-1;
+            } else {
+              index = MAXLIGHTSCALE-1; // no distance attenuation (done on GPU)
+            }
             dc_colormap = walllights[index];
             dc_x = rw_x;
             dc_iscale = 0xffffffffu / (unsigned)rw_scale;
@@ -354,11 +350,11 @@ void R_RenderSegLoop (void)
             dc_yh = yh;
             dc_texturemid = rw_midtexturemid;
             dc_texid = 1 + midtexture;
-#ifdef RISCV
-            dc_source = NULL; //R_GetColumn(midtexture,texturecolumn);
-#else
-            dc_source = R_GetColumn(midtexture,texturecolumn);
-#endif
+            if (gpu_enabled) {
+              dc_source = NULL; //R_GetColumn(midtexture,texturecolumn);
+            } else {
+              dc_source = R_GetColumn(midtexture,texturecolumn);
+            }
             colfunc ();
             ceilingclip[rw_x] = viewheight;
             floorclip[rw_x] = -1;
@@ -381,11 +377,11 @@ void R_RenderSegLoop (void)
                     dc_yh = mid;
                     dc_texturemid = rw_toptexturemid;
                     dc_texid = 1 + toptexture;
-#ifdef RISCV
-                    dc_source = NULL; //R_GetColumn(toptexture,texturecolumn);
-#else
-                    dc_source = R_GetColumn(toptexture,texturecolumn);
-#endif
+                    if (gpu_enabled) {
+                      dc_source = NULL; //R_GetColumn(toptexture,texturecolumn);
+                    } else {
+                      dc_source = R_GetColumn(toptexture,texturecolumn);
+                    }
                     colfunc ();
                     ceilingclip[rw_x] = mid;
                 }
@@ -416,11 +412,11 @@ void R_RenderSegLoop (void)
                     dc_yh = yh;
                     dc_texturemid = rw_bottomtexturemid;
                     dc_texid = 1 + bottomtexture;
-#ifdef RISCV
-                    dc_source = NULL; //R_GetColumn(bottomtexture, texturecolumn);
-#else
-                    dc_source = R_GetColumn(bottomtexture, texturecolumn);
-#endif
+                    if (gpu_enabled) {
+                      dc_source = NULL; //R_GetColumn(bottomtexture, texturecolumn);
+                    } else {
+                      dc_source = R_GetColumn(bottomtexture, texturecolumn);
+                    }
                     colfunc ();
                     floorclip[rw_x] = mid;
                 }
@@ -794,13 +790,13 @@ R_StoreWallRange
     }
 
     // render it
-#ifndef RISCV
-    if (markceiling)
-        ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
+    if (!gpu_enabled) {
+      if (markceiling)
+          ceilingplane = R_CheckPlane (ceilingplane, rw_x, rw_stopx-1);
 
-    if (markfloor)
-        floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
-#endif
+      if (markfloor)
+          floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
+    }
 
     R_RenderSegLoop ();
 

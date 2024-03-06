@@ -119,12 +119,11 @@ lighttable_t*           scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
 lighttable_t*           scalelightfixed[MAXLIGHTSCALE];
 lighttable_t*           zlight[LIGHTLEVELS][MAXLIGHTZ];
 
-int                     scalelight_level[LIGHTLEVELS];
-
 // bumped light from gun blasts
 int                     extralight;
 
-
+// is the GPU enabled?
+int                     gpu_enabled = 0;
 
 void (*colfunc) (void);
 void (*basecolfunc) (void);
@@ -731,20 +730,20 @@ void R_ExecuteSetViewSize (void)
         screenheightarray[i] = viewheight;
 
     // planes
-#ifndef RISCV
-    for (i=0 ; i<viewheight ; i++)
-    {
-        dy = ((i-viewheight/2)<<FRACBITS)+FRACUNIT/2;
-        dy = abs(dy);
-        yslope[i] = FixedDiv ( (viewwidth<<detailshift)/2*FRACUNIT, dy);
-    }
+    if (!gpu_enabled) {
+      for (i=0 ; i<viewheight ; i++)
+      {
+          dy = ((i-viewheight/2)<<FRACBITS)+FRACUNIT/2;
+          dy = abs(dy);
+          yslope[i] = FixedDiv ( (viewwidth<<detailshift)/2*FRACUNIT, dy);
+      }
 
-    for (i=0 ; i<viewwidth ; i++)
-    {
-        cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
-        distscale[i] = FixedDiv (FRACUNIT,cosadj);
+      for (i=0 ; i<viewwidth ; i++)
+      {
+          cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
+          distscale[i] = FixedDiv (FRACUNIT,cosadj);
+      }
     }
-#endif
 
     // Calculate the light levels to use
     //  for each level / scale combination.
@@ -764,7 +763,6 @@ void R_ExecuteSetViewSize (void)
             scalelight[i][j] = colormaps + level*256;
         }
 
-        scalelight_level[i] = 15 - (level>>1);
     }
 }
 
@@ -782,9 +780,6 @@ void R_Init (void)
     R_InitData ();
     printf ("\nR_InitData");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
-    R_InitSpanRecords ();
-    printf ("\nR_InitSpanRecords");
-    printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
     R_InitPointToAngle ();
     printf ("\nR_InitPointToAngle");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
@@ -792,12 +787,9 @@ void R_Init (void)
     // viewwidth / viewheight / detailLevel are set by the defaults
     printf ("\nR_InitTables");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
-
     R_SetViewSize (screenblocks, detailLevel);
-#ifndef RISCV
     R_InitPlanes ();
     printf ("\nR_InitPlanes");
-#endif
     R_InitLightTables ();
     printf ("\nR_InitLightTables");
     printf("\nZ_Malloc tot size : %d\n", zmalloc_tot_size );
@@ -880,8 +872,6 @@ void R_SetupFrame (player_t* player)
     validcount++;
 }
 
-
-#ifdef RISCV
 void I_GPUFrame_Start();
 void I_GPUFrame_End();
 static inline unsigned int cpu_time()
@@ -890,41 +880,42 @@ static inline unsigned int cpu_time()
    asm volatile ("rdcycle %0" : "=r"(cycles));
    return cycles;
 }
-#endif
 
 //
 // R_RenderView
 //
 void R_RenderPlayerView (player_t* player)
 {
-    R_ClearSpanRecords();
-
     R_SetupFrame (player);
 
     // Clear buffers.
     R_ClearClipSegs ();
     R_ClearDrawSegs ();
-    R_ClearPlanes ();
+    R_ClearPlanes (); // keep even when GPU active
     R_ClearSprites ();
 
-   // The head node is the last node output.
-#if RISCV
-    // unsigned int tm_start = cpu_time();
-    I_GPUFrame_Start();
+#ifdef RISCV
+    // The head node is the last node output.
+    if (gpu_enabled) {
+      // unsigned int tm_start = cpu_time();
+      I_GPUFrame_Start();
+    }
 #endif
+
     R_RenderBSPNode (numnodes-1);
 
-#ifndef RISCV
-    R_DrawPlanes ();
-#endif
+    if (!gpu_enabled) {
+      R_DrawPlanes ();
+    }
 
     R_DrawMasked ();
 
-#if RISCV
-    I_GPUFrame_End();
-
-    // unsigned int tm_stop = cpu_time();
-    // printf("%d cycles in renderer\n",tm_stop - tm_start);
+#ifdef RISCV
+    if (gpu_enabled) {
+      I_GPUFrame_End();
+      // unsigned int tm_stop = cpu_time();
+      // printf("%d cycles in renderer\n",tm_stop - tm_start);
+    }
 #endif
 
     // Check for new console commands.

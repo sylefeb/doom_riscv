@@ -686,10 +686,9 @@ P_SetupLevel
     //  UNUSED P_ConnectSubsectors ();
 
     // preload graphics
-#ifndef RISCV
     if (precache)
         R_PrecacheLevel ();
-#endif
+
     //printf ("free memory: 0x%x\n", Z_FreeMemory());
 
 }

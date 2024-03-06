@@ -40,6 +40,8 @@
 
 #include "../../libs/gpu.h"
 
+extern int      gpu_enabled;
+
 void
 I_Init(void) { }
 
@@ -110,6 +112,7 @@ I_GetRemoteEvent(void)
 		ch &= 0x7f;
 
     if (ch == '*') {
+
       // boom!
       printf("GPU reset\n");
       gpu_warmboot();
@@ -122,6 +125,12 @@ I_GetRemoteEvent(void)
       *LEDS  = 1;
       *RESET = 1;
       while (1) {}
+
+    } else if (ch == '/' && msb) {
+
+      gpu_enabled = 1 - gpu_enabled;
+      I_GPUEnable_Changed();
+
     }
 
 		if (ch < 28) {

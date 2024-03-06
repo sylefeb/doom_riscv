@@ -104,59 +104,10 @@ int                     dc_light_level;
 // when set, draws at depth 0
 int                     dc_is_overlay;
 
-extern int              scalelight_level[LIGHTLEVELS];
+extern int              gpu_enabled;
 
 // just for profiling
 int                     dccount;
-
-t_spanrecord          **dc_spanrecords;
-#define SPANRECORDS_POOL_SIZE 320*50 // ought to be enough
-t_spanrecord           *dc_spanrecords_pool;
-int                     dc_next_free_spanrecord;
-
-
-//
-// R_ClearSpanRecords
-// Creates the array of span records
-// used to generate draw calls for the GPU
-//
-void R_ClearSpanRecords(void)
-{
-    // fast clear
-    memset(dc_spanrecords, 0x00, sizeof(t_spanrecord*)*SCREENWIDTH);
-    dc_next_free_spanrecord = 0;
-}
-
-//
-// R_InitSpanRecords
-// Creates the array of span records
-// used to generate draw calls for the GPU
-//
-void R_InitSpanRecords(void)
-{
-    dc_spanrecords = Z_Malloc ( sizeof(t_spanrecord*)*SCREENWIDTH , PU_STATIC, 0);
-    dc_spanrecords_pool = Z_Malloc ( sizeof(t_spanrecord)*SPANRECORDS_POOL_SIZE , PU_STATIC, 0);
-    R_ClearSpanRecords();
-}
-
-//
-// R_AddSpanRecord
-// Add a span record to the column
-// No allocation performed, relies
-// on a pre-allocated pool of records
-//
-t_spanrecord *R_AddSpanRecord(int col)
-{
-    t_spanrecord *new = dc_spanrecords_pool + dc_next_free_spanrecord;
-    ++ dc_next_free_spanrecord;
-    if (dc_next_free_spanrecord == SPANRECORDS_POOL_SIZE) {
-        // need more! simply fail for now, could realloc ...
-        I_Error ("No more span records.");
-    }
-    new->next = dc_spanrecords[col];
-    dc_spanrecords[col] = new;
-    return new;
-}
 
 #ifdef RISCV
 
@@ -227,23 +178,20 @@ void R_DrawColumn (void)
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl-centery)*fracstep;
 
-    // Add span record for the GPU (TEST: move to a different R_DrawColumn and set colfunc)
-    // t_spanrecord *rec = R_AddSpanRecord(dc_x);
-    t_spanrecord lrec;
-    t_spanrecord *rec = &lrec;
-    rec->type  = SPAN_WALL; // wall
-    rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
-    rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
-    rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
-    rec->wall.vinit = ((frac + dc_voffset) >> 16);
-    rec->wall.u = dc_u;
-    rec->texid  = dc_texid;
-    rec->light  = dc_light_level;
-
 #ifdef RISCV
-
-    R_DrawGPUSpan(dc_x , rec);
-
+    if (gpu_enabled) {
+      t_spanrecord lrec;
+      t_spanrecord *rec = &lrec;
+      rec->type  = SPAN_WALL; // wall
+      rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
+      rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
+      rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
+      rec->wall.vinit = ((frac + dc_voffset) >> 16);
+      rec->wall.u = dc_u;
+      rec->texid  = dc_texid;
+      rec->light  = dc_light_level;
+      R_DrawGPUSpan(dc_x , rec);
+    }
 #endif
 
     if (!dc_source) return; // texture removed (also skips on GPU renderer)
@@ -573,16 +521,15 @@ byte*                   ds_source;
 // just for profiling
 int                     dscount;
 
+extern int              gpu_enabled;
 
 //
 // Draws the actual span.
 void R_DrawSpan (void)
 {
-#ifdef RISCV
-    // GPU: disabled ////////////////////////////////////
-    return;
-    // //////////////////////////////////////////////////
-#endif
+    if (gpu_enabled) {
+      return;
+    }
 
     fixed_t             xfrac;
     fixed_t             yfrac;
