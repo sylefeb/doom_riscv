@@ -39,6 +39,7 @@
 #include "config.h"
 
 #include "../../libs/gpu.h"
+#include "../../libs/kb.h"
 
 extern int      gpu_enabled;
 
@@ -68,35 +69,6 @@ I_GetRemoteEvent(void)
 {
 	event_t event;
 
-	const char map[] = {
-		KEY_LEFTARROW,  // 0
-		KEY_RIGHTARROW, // 1
-		KEY_DOWNARROW,  // 2
-		KEY_UPARROW,    // 3
-		KEY_RSHIFT,     // 4
-		KEY_RCTRL,      // 5
-		KEY_RALT,       // 6
-		KEY_ESCAPE,     // 7
-		KEY_ENTER,      // 8
-		KEY_TAB,        // 9
-		KEY_BACKSPACE,  // 10
-		KEY_PAUSE,      // 11
-		KEY_EQUALS,     // 12
-		KEY_MINUS,      // 13
-		KEY_F1,         // 14
-		KEY_F2,         // 15
-		KEY_F3,         // 16
-		KEY_F4,         // 17
-		KEY_F5,         // 18
-		KEY_F6,         // 19
-		KEY_F7,         // 20
-		KEY_F8,         // 21
-		KEY_F9,         // 22
-		KEY_F10,        // 23
-		KEY_F11,        // 24
-		KEY_F12,        // 25
-	};
-
 	static byte s_btn = 0;
 
 	boolean mupd = false;
@@ -104,12 +76,11 @@ I_GetRemoteEvent(void)
 	int mdy = 0;
 
 	while (1) {
-		int ch = console_getchar_nowait();
-		if (ch == -1)
-			break;
 
-		boolean msb = ch & 0x80;
-		ch &= 0x7f;
+		unsigned int ch = console_getchar_nowait();
+		if (ch == KB_NONE) {
+			break;
+    }
 
     if (ch == '*') {
 
@@ -126,47 +97,69 @@ I_GetRemoteEvent(void)
       *RESET = 1;
       while (1) {}
 
-    } else if (ch == '/' && msb) {
+    } else if (ch == '/') {
 
       gpu_enabled = 1 - gpu_enabled;
       I_GPUEnable_Changed();
 
     }
 
-		if (ch < 28) {
-			/* Keyboard special */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = map[ch];
-			D_PostEvent(&event);
-		} else if (ch < 31) {
-			/* Mouse buttons */
-			if (msb)
-				s_btn |= (1 << ((ch & 0x7f) - 28));
-			else
-				s_btn &= ~(1 << ((ch & 0x7f) - 28));
-			mupd = true;
-		} else if (ch == 0x1f) {
-			/* Mouse movement */
-			signed char x = console_getchar();
-			signed char y = console_getchar();
-			mdx += x;
-			mdy += y;
-			mupd = true;
-		} else {
-			/* Keyboard normal */
-			event.type = msb ? ev_keydown : ev_keyup;
-			event.data1 = ch;
-			D_PostEvent(&event);
-		}
-	}
+    event.type = (ch & KB_UNPRESSED) ? ev_keyup : ev_keydown;
+    ch         = ch & ~KB_UNPRESSED;
+    switch (ch) {
+      case KB_UP:     event.data1 = KEY_UPARROW;    break;
+      case KB_LEFT:   event.data1 = KEY_LEFTARROW;  break;
+      case KB_DOWN:   event.data1 = KEY_DOWNARROW;  break;
+      case KB_RIGHT:  event.data1 = KEY_RIGHTARROW; break;
+      case KB_RSHIFT: event.data1 = KEY_RSHIFT; break;
+      case KB_LSHIFT: event.data1 = KEY_RSHIFT; break;
+      case KB_LCTRL:  event.data1 = KEY_RCTRL; break;
+      case KB_LALT:   event.data1 = KEY_RALT; break;
+      case KB_ESC:    event.data1 = KEY_ESCAPE; break;
+      case '\n':      event.data1 = KEY_ENTER; break;
+      case KB_TAB:    event.data1 = KEY_TAB; break;
+      default: event.data1 = ch;
+    }
+    D_PostEvent(&event);
 
+  /*
+      KEY_LEFTARROW,  // 0
+      KEY_RIGHTARROW, // 1
+      KEY_DOWNARROW,  // 2
+      KEY_UPARROW,    // 3
+      KEY_RSHIFT,     // 4
+      KEY_RCTRL,      // 5
+      KEY_RALT,       // 6
+      KEY_ESCAPE,     // 7
+      KEY_ENTER,      // 8
+      KEY_TAB,        // 9
+      KEY_BACKSPACE,  // 10
+      KEY_PAUSE,      // 11
+      KEY_EQUALS,     // 12
+      KEY_MINUS,      // 13
+      KEY_F1,         // 14
+      KEY_F2,         // 15
+      KEY_F3,         // 16
+      KEY_F4,         // 17
+      KEY_F5,         // 18
+      KEY_F6,         // 19
+      KEY_F7,         // 20
+      KEY_F8,         // 21
+      KEY_F9,         // 22
+      KEY_F10,        // 23
+      KEY_F11,        // 24
+      KEY_F12,        // 25
+  */
+  /*
 	if (mupd) {
 		event.type = ev_mouse;
 		event.data1 = s_btn;
 		event.data2 =   mdx << 2;
-		event.data3 = - mdy << 2;	/* Doom is sort of inverted ... */
+		event.data3 = - mdy << 2;	// Doom is sort of inverted ...
 		D_PostEvent(&event);
 	}
+  */
+  }
 }
 
 extern fixed_t  viewcos;

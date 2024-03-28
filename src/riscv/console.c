@@ -39,27 +39,14 @@ console_putchar(char c)
 
 int last_tag = 0;
 
-char
-console_getchar(void)
+unsigned int console_getchar(void)
 {
-  int tag, uart;
-  do {
-    uart = *UART;
-    tag  = (uart >> 8)&255;
-  } while (tag == last_tag);
-  last_tag = tag;
-  return uart & 255;
+  return kb_wait();
 }
 
-int
-console_getchar_nowait(void)
+unsigned int console_getchar_nowait(void)
 {
-  int tag, uart;
-  uart = *UART;
-  tag  = (uart >> 8)&255;
-  if (tag == last_tag) return -1;
-  last_tag = tag;
-  return uart & 255;
+  return kb_peek();
 }
 
 void

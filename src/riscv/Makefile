@@ -38,6 +38,7 @@ SOURCES_doom_arch := \
 	libc_backend.c  \
 	mini-printf.c \
 	../../../config.c \
+	../../../libs/kb.c \
 	$(NULL)
 
 

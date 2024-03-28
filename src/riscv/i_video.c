@@ -32,7 +32,7 @@
 #include "config.h"
 #include <stdlib.h>
 
-// #define SIMULATION
+#define SIMULATION
 
 #include "../../../libs/gpu.h"
 #include "r_draw.h"
