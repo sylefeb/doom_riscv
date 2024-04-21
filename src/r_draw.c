@@ -183,10 +183,13 @@ void R_DrawColumn (void)
       t_spanrecord lrec;
       t_spanrecord *rec = &lrec;
       rec->type  = SPAN_WALL; // wall
-      rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
-      rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
-      rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
-      rec->wall.vinit = ((frac + dc_voffset) >> 16);
+      //rec->yl    = (( dc_yl      * 6) + 2) / 5; // TODO: rescale func
+      //rec->yh    = (((dc_yh + 1) * 6) + 2) / 5;
+      //rec->wall.vstep = ((((fracstep * 5) + 3) / 6) + 16) >> 5;
+      rec->yl         = dc_yl;
+      rec->yh         = (dc_yh + 1);
+      rec->wall.vstep = (fracstep + 16) >> 5;
+      rec->wall.vinit = (frac + dc_voffset) >> 16;
       rec->wall.u = dc_u;
       rec->texid  = dc_texid;
       rec->light  = dc_light_level;

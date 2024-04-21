@@ -32,7 +32,7 @@
 #include "config.h"
 #include <stdlib.h>
 
-#define SIMULATION
+// #define SIMULATION
 
 #include "../../../libs/gpu.h"
 #include "r_draw.h"
@@ -60,7 +60,7 @@ I_InitGraphics(void)
   screen_init();
 
   if (gpu_enabled) {
-    screen_col_major();
+  //  screen_col_major();
   } else {
     // row major for fast frame sending from CPU
     screen_row_major();
@@ -91,16 +91,14 @@ I_SetPalette(byte* palette)
 {
 	byte r, g, b;
 
-  if (!gpu_enabled) {
-    gpu_pal_start();
-    for (int i=0 ; i<256 ; i++) {
-      r = gammatable[usegamma][*palette++];
-      g = gammatable[usegamma][*palette++];
-      b = gammatable[usegamma][*palette++];
-      gpu_pal_rgb(r,g,b);
-    }
-    gpu_pal_end();
+  gpu_pal_start();
+  for (int i=0 ; i<256 ; i++) {
+    r = gammatable[usegamma][*palette++];
+    g = gammatable[usegamma][*palette++];
+    b = gammatable[usegamma][*palette++];
+    gpu_pal_rgb(r,g,b);
   }
+  gpu_pal_end();
 
 }
 
@@ -148,11 +146,12 @@ void I_GPUFrame_Start()
         PARAMETER_UV_OFFSET(-viewy>>6),
         PARAMETER_UV_OFFSET_EX(-viewx>>6) | PARAMETER
     );
+
     current_overlay = 0;
 
     // produce plane parameters for all columns
     for (int c = 0 ; c != 320 ; ++c) {
-      const int flat_scale = 3100; // might need small adjustments
+      const int flat_scale = 2583; // 3100; // might need small adjustments
       int rz = flat_scale;
       int cx = (c - SCREENWIDTH/2) * flat_scale * 2 / (SCREENWIDTH);
       int du = dot3( cx,0,rz, -viewsin>>4,0,-viewcos>>4 ) >> 14;
@@ -172,7 +171,7 @@ I_FinishUpdate (void)
   if (!gpu_enabled) {
 
     const int W = 320;
-    const int H = 240;
+    const int H = 200;
 
     gpu_frame_start();
     const int *row = (int*)screens[0];

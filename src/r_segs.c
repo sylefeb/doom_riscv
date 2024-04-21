@@ -272,10 +272,10 @@ void R_RenderSegLoop (void)
                 t_spanrecord lrec;
                 t_spanrecord *rec = &lrec;
                 rec->type  = SPAN_FLAT; // flat
-                rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
-                rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                rec->yl    = top;
+                rec->yh    = bottom + 1;
                 rec->flat.height = worldtop >> 12;
-                rec->flat.yshift = rec->yl - 240/2;
+                rec->flat.yshift = rec->yl - 200/2;
                 rec->texid  = numtextures + frontsector->ceilingpic;
                 rec->light  = ceiling_lightlevel;
                 R_DrawGPUSpan(rw_x, rec);
@@ -307,10 +307,10 @@ void R_RenderSegLoop (void)
                 t_spanrecord lrec;
                 t_spanrecord *rec = &lrec;
                 rec->type  = SPAN_FLAT;
-                rec->yl    = (( top    * 6) + 2) / 5; // TODO: rescale function
-                rec->yh    = (((bottom + 1) * 6) + 2) / 5;
+                rec->yl    = top;
+                rec->yh    = bottom + 1;
                 rec->flat.height = - worldbottom >> 12;
-                rec->flat.yshift = rec->yl - 240/2;
+                rec->flat.yshift = rec->yl - 200/2;
                 rec->texid = numtextures + frontsector->floorpic;
                 rec->light = floor_lightlevel;
                 R_DrawGPUSpan(rw_x, rec);
