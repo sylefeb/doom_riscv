@@ -43,12 +43,10 @@ void
 I_GPUEnable_Changed()
 {
   if (gpu_enabled) {
-    screen_col_major();
+    // nothing to do
   } else {
     // wait for current frame to finish
     gpu_sync_frame();
-    // row major for fast frame sending from CPU
-    screen_row_major();
   }
 }
 
@@ -58,13 +56,6 @@ I_InitGraphics(void)
 
   // initialize screen
   screen_init();
-
-  if (gpu_enabled) {
-  //  screen_col_major();
-  } else {
-    // row major for fast frame sending from CPU
-    screen_row_major();
-  }
 
   // clear text buffer
   gpu_txt_start();
@@ -175,19 +166,13 @@ I_FinishUpdate (void)
 
     gpu_frame_start();
     const int *row = (int*)screens[0];
-    int dupl = 0;
     for (int j=0;j<H;j++) {
       const int *ptr = row;
       for (int i=0;i<W/4;i++) {
         *GPU = *(ptr++);
         GPU_COM_WAIT;
       }
-      ++ dupl;          // increment source pointer
-      if (dupl == 6) {
-        dupl = 0;
-      } else {
-        row += W/4;
-      }
+      row += W/4;
     }
     gpu_frame_end();
 
