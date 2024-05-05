@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "mini-printf.h"
+#include "../../../libs/kb.h"
 
 static volatile int * const UART = (void*)(PTR_UART_BASE);
 
@@ -41,7 +42,7 @@ int last_tag = 0;
 
 unsigned int console_getchar(void)
 {
-  return kb_wait();
+  return KB_NONE;
 }
 
 unsigned int console_getchar_nowait(void)

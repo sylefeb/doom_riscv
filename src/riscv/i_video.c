@@ -35,6 +35,7 @@
 // #define SIMULATION
 
 #include "../../../libs/gpu.h"
+#include "../../../libs/kb.h"
 #include "r_draw.h"
 
 extern int gpu_enabled;
@@ -56,6 +57,8 @@ I_InitGraphics(void)
 
   // initialize screen
   screen_init();
+  // keyboard init (TODO: move to more logical place)
+  kb_init();
 
   // clear text buffer
   gpu_txt_start();
