@@ -40,6 +40,7 @@
 
 #include "../../libs/gpu.h"
 #include "../../libs/kb.h"
+// #include "../../libs/buttons.h"
 
 extern int      gpu_enabled;
 
@@ -69,21 +70,16 @@ I_GetRemoteEvent(void)
 {
 	event_t event;
 
-	static byte s_btn = 0;
+	//static byte s_btn = 0;
+	//boolean mupd = false;
+	//int mdx = 0;
+	//int mdy = 0;
 
-	boolean mupd = false;
-	int mdx = 0;
-	int mdy = 0;
-
-	while (1) {
-
-		unsigned int ch = console_getchar_nowait();
-		if (ch == KB_NONE) {
-			break;
-    }
-
+  // from keyboard
+  unsigned int ch = console_getchar_nowait();
+  if (ch != KB_NONE) {
     if (ch == '*') {
-
+    /*
       // boom!
       printf("GPU reset\n");
       gpu_warmboot();
@@ -95,15 +91,11 @@ I_GetRemoteEvent(void)
       }
       *LEDS  = 1;
       *RESET = 1;
-      while (1) {}
-
+    */
     } else if (ch == '/') {
-
       gpu_enabled = 1 - gpu_enabled;
       I_GPUEnable_Changed();
-
     }
-
     event.type = (ch & KB_UNPRESSED) ? ev_keyup : ev_keydown;
     ch         = ch & ~KB_UNPRESSED;
     switch (ch) {
@@ -121,6 +113,34 @@ I_GetRemoteEvent(void)
       default: event.data1 = ch;
     }
     D_PostEvent(&event);
+  }
+  // buttons
+  static int prev_btns = 0;
+  int        btns      = 0; // get_buttons();
+  for (int b ; b<8 ; ++b) {
+    int prev = prev_btns & (1<<b);
+    int curr = btns      & (1<<b);
+    if (curr ^ prev) {
+      // changed
+      event.type = curr ? ev_keyup : ev_keydown;
+      // set data
+      switch (ch) {
+        case 1:         event.data1 = KEY_UPARROW;    break;
+        case 2:         event.data1 = KEY_LEFTARROW;  break;
+        case 4:         event.data1 = KEY_DOWNARROW;  break;
+        case 8:         event.data1 = KEY_RIGHTARROW; break;
+        case 16:        event.data1 = KEY_RSHIFT;     break;
+        case 32:        event.data1 = KEY_RCTRL;      break;
+        case 64:        event.data1 = KEY_RALT;       break;
+        case 128:       event.data1 = KEY_ESCAPE;     break;
+      }
+      // post
+      D_PostEvent(&event);
+    }
+  }
+  prev_btns = btns;
+
+}
 
   /*
       KEY_LEFTARROW,  // 0
@@ -159,8 +179,6 @@ I_GetRemoteEvent(void)
 		D_PostEvent(&event);
 	}
   */
-  }
-}
 
 extern fixed_t  viewcos;
 extern fixed_t  viewsin;

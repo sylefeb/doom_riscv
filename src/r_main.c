@@ -123,7 +123,7 @@ lighttable_t*           zlight[LIGHTLEVELS][MAXLIGHTZ];
 int                     extralight;
 
 // is the GPU enabled?
-int                     gpu_enabled = 0;
+int                     gpu_enabled = 1;
 
 void (*colfunc) (void);
 void (*basecolfunc) (void);
