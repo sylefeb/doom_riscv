@@ -564,13 +564,17 @@ boolean G_Responder (event_t* ev)
             sendpause = true;
             return true;
         }
-        if (ev->data1 <NUMKEYS)
+        if (ev->data1 <NUMKEYS) {
+            //printf("%x D\n",ev->data1);
             gamekeydown[ev->data1] = true;
+        }
         return true;    // eat key down events
 
       case ev_keyup:
-        if (ev->data1 <NUMKEYS)
+        if (ev->data1 <NUMKEYS) {
+            //printf("%x U\n",ev->data1);
             gamekeydown[ev->data1] = false;
+        }
         return false;   // always let key up events filter down
 
       case ev_mouse:

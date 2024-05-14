@@ -39,6 +39,7 @@ SOURCES_doom_arch := \
 	mini-printf.c \
 	../../../config.c \
 	../../../libs/kb.c \
+	../../../libs/buttons.c \
 	$(NULL)
 
 

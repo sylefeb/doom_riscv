@@ -40,7 +40,7 @@
 
 #include "../../libs/gpu.h"
 #include "../../libs/kb.h"
-// #include "../../libs/buttons.h"
+#include "../../libs/buttons.h"
 
 extern int      gpu_enabled;
 
@@ -74,7 +74,7 @@ I_GetRemoteEvent(void)
 	//boolean mupd = false;
 	//int mdx = 0;
 	//int mdy = 0;
-
+#if 0
   // from keyboard
   unsigned int ch = console_getchar_nowait();
   if (ch != KB_NONE) {
@@ -105,7 +105,7 @@ I_GetRemoteEvent(void)
       case KB_RIGHT:  event.data1 = KEY_RIGHTARROW; break;
       case KB_RSHIFT: event.data1 = KEY_RSHIFT; break;
       case KB_LSHIFT: event.data1 = KEY_RSHIFT; break;
-      case KB_LCTRL:  event.data1 = KEY_RCTRL; break;
+      case KB_LCTRL:  event.data1 = ; break;
       case KB_LALT:   event.data1 = KEY_RALT; break;
       case KB_ESC:    event.data1 = KEY_ESCAPE; break;
       case '\n':      event.data1 = KEY_ENTER; break;
@@ -114,32 +114,46 @@ I_GetRemoteEvent(void)
     }
     D_PostEvent(&event);
   }
-  // buttons
-  static int prev_btns = 0;
-  int        btns      = 0; // get_buttons();
-  for (int b ; b<8 ; ++b) {
-    int prev = prev_btns & (1<<b);
-    int curr = btns      & (1<<b);
-    if (curr ^ prev) {
-      // changed
-      event.type = curr ? ev_keyup : ev_keydown;
-      // set data
-      switch (ch) {
-        case 1:         event.data1 = KEY_UPARROW;    break;
-        case 2:         event.data1 = KEY_LEFTARROW;  break;
-        case 4:         event.data1 = KEY_DOWNARROW;  break;
-        case 8:         event.data1 = KEY_RIGHTARROW; break;
-        case 16:        event.data1 = KEY_RSHIFT;     break;
-        case 32:        event.data1 = KEY_RCTRL;      break;
-        case 64:        event.data1 = KEY_RALT;       break;
-        case 128:       event.data1 = KEY_ESCAPE;     break;
-      }
-      // post
-      D_PostEvent(&event);
-    }
-  }
-  prev_btns = btns;
+#endif
 
+  // buttons
+  static int gpu_switch = 0;
+  static unsigned int prev_btns = 0;
+  unsigned int btns = buttons_read();
+  if (btns == 0 && gpu_switch) {
+    printf("gpu_switch switching\n");
+    gpu_enabled = 1 - gpu_enabled;
+    gpu_switch  = 0;
+  }
+  if (btns == (BUTTON_A|BUTTON_B)) {
+    printf("gpu_switch 1\n");
+    gpu_switch = 1;
+  } else {
+    // printf("%x (%x)\n",btns,prev_btns);
+    for (unsigned int b=0 ; b<8 ; ++b) {
+      unsigned int prev = prev_btns & (1<<b);
+      unsigned int curr = btns      & (1<<b);
+      if (curr ^ prev) {
+        // changed
+        event.type = curr ? ev_keydown : ev_keyup;
+        // set data
+        switch (1<<b) {
+          case BUTTON_UP:      event.data1 = KEY_UPARROW;    break;
+          case BUTTON_LEFT:    event.data1 = KEY_LEFTARROW;  break;
+          case BUTTON_DOWN:    event.data1 = KEY_DOWNARROW;  break;
+          case BUTTON_RIGHT:   event.data1 = KEY_RIGHTARROW; break;
+          case BUTTON_A:       event.data1 = KEY_RCTRL;      break;
+          case BUTTON_B:       event.data1 = ' ';            break;
+          case BUTTON_C:       event.data1 = KEY_ENTER;      break;
+          case BUTTON_D:       event.data1 = KEY_ESCAPE;     break;
+        }
+        // post
+        // printf("%x %x %x\n",1<<b,event.data1,event.type);
+        D_PostEvent(&event);
+      }
+    }
+    prev_btns = btns;
+  }
 }
 
   /*
