@@ -35,9 +35,7 @@
 static volatile int * const SPISCREEN	    = PTR_SPISCREEN;
 static volatile int * const SPISCREEN_RST	= PTR_SPISCREEN_RST;
 
-// Palette is at a fixed address in fastram
-static uint16_t *video_pal = 0x03800000 + 1024 + 512;
-// static uint16_t *video_pal = NULL;
+static uint16_t *video_pal = NULL;
 
 #include "spiscreen.h"
 
@@ -50,7 +48,7 @@ I_InitGraphics(void)
   spiscreen_fullscreen();
   spiscreen_clear(0xff);
 
-  // video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
+  video_pal = (uint16_t *)malloc(sizeof(uint16_t)*256);
 
 	/* Don't need to do anything else really ... */
 
@@ -82,7 +80,7 @@ I_UpdateNoBlit(void)
 {
 }
 
-__attribute__((section(".fastram"))) void
+void
 I_FinishUpdate (void)
 {
   /// painstakingly send frame to the SPIscreen
@@ -129,7 +127,6 @@ I_WaitVBL(int count)
 }
 
 
-__attribute__((section(".fastram")))
 void
 I_ReadScreen(byte* scr)
 {

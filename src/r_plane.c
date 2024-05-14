@@ -328,7 +328,6 @@ R_CheckPlane
 //
 // R_MakeSpans
 //
-__attribute__((section(".fastram"),noinline))
 void
 R_MakeSpans
 ( int           x,
