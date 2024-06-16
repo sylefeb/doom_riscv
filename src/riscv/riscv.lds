@@ -1,6 +1,7 @@
 MEMORY
 {
-    PSRAM   (xrw) : ORIGIN = 0x00000000, LENGTH = 0x800000	/* 8MB */
+    PSRAM   (xrw) : ORIGIN = 0x00000004, LENGTH = 0x800000	/* 8MB */
+    /*                                ^ to allow for dynamic loading */
 }
 ENTRY(_start)
 SECTIONS {

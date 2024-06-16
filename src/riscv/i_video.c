@@ -56,7 +56,8 @@ I_InitGraphics(void)
 {
 
   // initialize screen
-  screen_init();
+  // screen_init(); // NOTE: when dynamically loaded, do not init screen
+
   // keyboard init (TODO: move to more logical place)
   kb_init();
 
